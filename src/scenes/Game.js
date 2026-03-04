@@ -31,9 +31,11 @@ export class Game extends Phaser.Scene {
         // Background
         // Sky depth: 20% of screen or 300px
         const skyHeight = 300;
-        this.add.rectangle(width / 2, 0, width, skyHeight, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
+        // Make background significantly wider than screen to prevent edges
+        const bgWidth = Math.max(width * 3, 2400);
+        this.add.rectangle(width / 2, 0, bgWidth, skyHeight, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
         // Water
-        this.add.rectangle(width / 2, skyHeight, width, 3000 - skyHeight, 0x004488).setOrigin(0.5, 0).setDepth(-1);
+        this.add.rectangle(width / 2, skyHeight, bgWidth, 3000 - skyHeight, 0x004488).setOrigin(0.5, 0).setDepth(-1);
 
         // Boat
         this.boat = this.physics.add.sprite(width / 4, 280, 'boat');
@@ -64,9 +66,15 @@ export class Game extends Phaser.Scene {
         this.crystalsText = this.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
         this.depthText = this.add.text(16, 128, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
 
-        // Sword placeholder
-        this.sword = this.add.rectangle(0, 0, 40, 10, 0xcccccc).setOrigin(0, 0.5).setAlpha(0).setDepth(10);
+        // Sword "Avatar" - Using a container for a better look
+        this.sword = this.add.container(0, 0).setAlpha(0).setDepth(10);
+        const blade = this.add.rectangle(10, 0, 40, 6, 0xcccccc).setOrigin(0, 0.5);
+        const hiltVertical = this.add.rectangle(10, 0, 4, 16, 0x8b4513).setOrigin(0.5, 0.5);
+        const hiltHorizontal = this.add.rectangle(5, 0, 10, 4, 0x8b4513).setOrigin(0.5, 0.5);
+        this.sword.add([blade, hiltVertical, hiltHorizontal]);
+
         this.physics.add.existing(this.sword);
+        this.sword.body.setSize(40, 10);
         this.sword.body.setAllowGravity(false);
         this.sword.body.setImmovable(true);
 
@@ -135,6 +143,11 @@ export class Game extends Phaser.Scene {
 
         // Dive Animation and Transition Logic
         this.isDiving = this.player.y > 300;
+
+        // Air Refill at surface
+        if (!this.isDiving && this.air < 100) {
+            this.air = 100;
+        }
 
         // Swimming Wobble and Angle
         if (this.isDiving) {
@@ -232,21 +245,27 @@ export class Game extends Phaser.Scene {
     }
 
     spawnPirate() {
-        const x = 850;
-        const y = Phaser.Math.Between(400, 2800);
-        const pirate = this.pirates.create(x, y, 'pirate');
-        pirate.setScale(0.4); // Larger
+        const cam = this.cameras.main;
+        const x = cam.worldView.right + 200;
+        const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
+
+        // Ensure not too close to player Y if possible
+        const safeY = (Math.abs(y - this.player.y) < 100) ? y + 200 : y;
+
+        const pirate = this.pirates.create(x, Math.min(2900, safeY), 'pirate');
+        pirate.setScale(0.4);
         pirate.body.setVelocityX(-150 * this.difficulty);
     }
 
     spawnMermaid() {
-        const x = 850;
-        const y = Phaser.Math.Between(400, 2800);
+        const cam = this.cameras.main;
+        const x = cam.worldView.right + 200;
+        const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
+
         const mermaid = this.mermaids.create(x, y, 'mermaid');
-        mermaid.setScale(0.3); // Increased scale
+        mermaid.setScale(0.3);
         mermaid.body.setVelocityX(-100);
 
-        // Sometimes drop a crystal
         if (Phaser.Math.Between(0, 1) === 1) {
             this.spawnCrystal(x, y);
         }
@@ -302,11 +321,21 @@ export class Game extends Phaser.Scene {
 
     getSafeSpawnPos() {
         let attempts = 0;
-        while (attempts < 5) {
-            const x = Phaser.Math.Between(50, 750);
+        const { width } = this.scale;
+        const worldWidth = Math.max(width, 800);
+
+        while (attempts < 10) {
+            const x = Phaser.Math.Between(50, worldWidth - 50);
             const y = Phaser.Math.Between(400, 2900);
 
-            // Minimal overlap check
+            // Proximity to player check
+            const distToPlayer = Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y);
+            if (distToPlayer < 300) {
+                attempts++;
+                continue;
+            }
+
+            // Minimal overlap check with other items
             const nearby = this.physics.overlapCirc(x, y, 50);
             if (nearby.length === 0) {
                 return { x, y };
