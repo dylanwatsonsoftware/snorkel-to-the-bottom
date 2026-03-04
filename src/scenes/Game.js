@@ -47,7 +47,7 @@ export class Game extends Phaser.Scene {
         // Player (Pirate Snorkeller)
         // Starts on the boat
         this.player = this.physics.add.sprite(100, 220, 'snorkeller');
-        this.player.setScale(0.5); // Increased scale
+        this.player.setScale(0.35); // 70% of 0.5
         this.player.body.setCollideWorldBounds(true);
 
         // Camera follow
