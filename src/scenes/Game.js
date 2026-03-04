@@ -46,7 +46,7 @@ export class Game extends Phaser.Scene {
         // Player (Pirate Snorkeller)
         // Starts on the boat
         this.player = this.physics.add.sprite(100, 220, 'snorkeller');
-        this.player.setScale(0.1); // Adjust scale if needed
+        this.player.setScale(0.5); // Increased scale
         this.player.body.setCollideWorldBounds(true);
 
         // Camera follow
@@ -74,6 +74,14 @@ export class Game extends Phaser.Scene {
         this.pirates = this.physics.add.group();
         this.mermaids = this.physics.add.group();
         this.bullets = this.physics.add.group();
+        this.crystalsGroup = this.physics.add.group();
+
+        // Mobile Controls
+        this.setupMobileControls();
+        this.crystalsGroup = this.physics.add.group();
+
+        // Mobile Controls
+        this.setupMobileControls();
 
         // Spawn items
         this.time.addEvent({ delay: 3000, callback: this.spawnTreasure, callbackScope: this, loop: true });
@@ -87,6 +95,7 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.airBubbles, this.collectAir, null, this);
         this.physics.add.overlap(this.player, this.scubaTanks, this.collectScuba, null, this);
         this.physics.add.overlap(this.player, this.mermaids, this.collectMermaid, null, this);
+        this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
         this.physics.add.collider(this.player, this.pirates, this.hitByEnemy, null, this);
         this.physics.add.overlap(this.bullets, this.pirates, this.killEnemy, null, this);
 
@@ -100,33 +109,41 @@ export class Game extends Phaser.Scene {
     }
 
     update() {
+        if (this.isGameOver) return;
+
         const speed = 200;
         this.player.body.setVelocity(0);
 
         // Difficulty increases over time
         this.difficulty += 0.0001;
 
-        if (this.cursors.left.isDown) {
-            this.player.body.setVelocityX(-speed);
-            if (!this.isDiving) this.boat.body.setVelocityX(-speed);
-        } else if (this.cursors.right.isDown) {
-            this.player.body.setVelocityX(speed);
-            if (!this.isDiving) this.boat.body.setVelocityX(speed);
+        // Combine Keyboard and Mobile Input
+        let moveX = 0;
+        let moveY = 0;
+
+        if (this.cursors.left.isDown || this.mobileInputs?.left) moveX = -1;
+        else if (this.cursors.right.isDown || this.mobileInputs?.right) moveX = 1;
+
+        if (this.cursors.up.isDown || this.mobileInputs?.up) moveY = -1;
+        else if (this.cursors.down.isDown || this.mobileInputs?.down) moveY = 1;
+
+        if (moveX !== 0) {
+            this.player.body.setVelocityX(moveX * speed);
+            if (!this.isDiving) this.boat.body.setVelocityX(moveX * speed);
         } else {
             if (!this.isDiving) this.boat.body.setVelocityX(0);
         }
 
-        if (this.cursors.up.isDown) {
-            this.player.body.setVelocityY(-speed);
-        } else if (this.cursors.down.isDown) {
-            this.player.body.setVelocityY(speed);
+        if (moveY !== 0) {
+            this.player.body.setVelocityY(moveY * speed);
         }
 
         // Shooting
-        if (this.cursors.space.isDown && this.time.now > this.lastShotTime + 500) {
+        const firePressed = Phaser.Input.Keyboard.JustDown(this.cursors.space) || (this.mobileInputs?.fire && !this.lastFire);
+        if (firePressed) {
             this.shoot();
-            this.lastShotTime = this.time.now;
         }
+        this.lastFire = this.mobileInputs?.fire;
 
         // Check if player is diving
         if (this.player.y > 300) {
@@ -153,7 +170,7 @@ export class Game extends Phaser.Scene {
         const x = 850;
         const y = Phaser.Math.Between(400, 2800);
         const pirate = this.pirates.create(x, y, 'pirate');
-        pirate.setScale(0.1);
+        pirate.setScale(0.3); // Increased scale
         pirate.body.setVelocityX(-150 * this.difficulty);
     }
 
@@ -161,7 +178,7 @@ export class Game extends Phaser.Scene {
         const x = 850;
         const y = Phaser.Math.Between(400, 2800);
         const mermaid = this.mermaids.create(x, y, 'mermaid');
-        mermaid.setScale(0.1);
+        mermaid.setScale(0.3); // Increased scale
         mermaid.body.setVelocityX(-100);
 
         // Sometimes drop a crystal
@@ -172,7 +189,7 @@ export class Game extends Phaser.Scene {
 
     spawnCrystal(x, y) {
         const crystal = this.crystalsGroup.create(x, y, 'crystal');
-        crystal.setScale(0.05);
+        crystal.setScale(0.15); // Increased scale
         crystal.body.setVelocityX(-100);
     }
 
@@ -183,70 +200,57 @@ export class Game extends Phaser.Scene {
         this.score += 500;
     }
 
-    hitByEnemy(player, enemy) {
-        this.gameOver();
-    }
-
-    killEnemy(bullet, enemy) {
-        bullet.destroy();
-        enemy.destroy();
-        this.score += 200;
-    }
-
-    spawnTreasure() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const treasure = this.treasures.create(x, y, 'treasure');
-        treasure.setScale(0.05);
-    }
-
-    spawnAirBubble() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const bubble = this.airBubbles.create(x, y, null);
-        this.add.circle(x, y, 5, 0x00ffff, 0.5);
-        bubble.body.setSize(10, 10);
-    }
-
-    spawnScubaTank() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const tank = this.scubaTanks.create(x, y, 'scuba');
-        tank.setScale(0.05);
-    }
-
-    collectTreasure(player, treasure) {
-        treasure.destroy();
-        this.score += 100;
-        this.money += 50;
-    }
-
-    collectAir(player, bubble) {
-        bubble.destroy();
-        this.air = Math.min(100, this.air + 5);
-    }
-
-    collectScuba(player, tank) {
-        tank.destroy();
-        this.air = Math.min(100, this.air + 30);
-    }
-
-    depleteAir() {
-        if (this.isDiving) {
-            this.air -= 2; // Drains faster when diving
-        } else {
-            this.air -= 0.5; // Drains slowly on the boat
-        }
-
-        if (this.air <= 0) {
-            this.air = 0;
-            this.gameOver();
-        }
+    collectCrystal(player, crystal) {
+        crystal.destroy();
+        this.crystals += 1;
+        this.score += 1000;
     }
 
     gameOver() {
+        if (this.isGameOver) return;
+        this.isGameOver = true;
         this.physics.pause();
-        this.add.text(400, 300, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
-        this.input.on('pointerdown', () => this.scene.restart());
+        this.player.setTint(0xff0000);
+
+        const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
+        const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+
+        this.add.text(screenCenterX, screenCenterY - 50, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
+
+        const restartBtn = this.add.text(screenCenterX, screenCenterY + 50, 'RESTART', { fontSize: '32px', fill: '#fff', backgroundColor: '#333', padding: { x: 20, y: 10 } })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.isGameOver = false;
+                this.scene.restart();
+            });
+
+        this.input.keyboard.once('keydown-SPACE', () => {
+            this.isGameOver = false;
+            this.scene.restart();
+        });
+    }
+
+    setupMobileControls() {
+        this.mobileInputs = { left: false, right: false, up: false, down: false, fire: false };
+
+        const bottomY = this.cameras.main.height - 80;
+
+        const createBtn = (x, y, label, callbackDown, callbackUp) => {
+            const btn = this.add.rectangle(x, y, 70, 70, 0xffffff, 0.2)
+                .setScrollFactor(0)
+                .setInteractive()
+                .on('pointerdown', callbackDown)
+                .on('pointerup', callbackUp)
+                .on('pointerout', callbackUp);
+            this.add.text(x, y, label, { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+            return btn;
+        };
+
+        createBtn(60, bottomY, 'L', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
+        createBtn(140, bottomY, 'R', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
+        createBtn(this.cameras.main.width / 2 - 40, bottomY, 'U', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
+        createBtn(this.cameras.main.width / 2 + 40, bottomY, 'D', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
+        createBtn(this.cameras.main.width - 60, bottomY, 'F', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
     }
 }
