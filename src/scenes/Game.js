@@ -108,6 +108,18 @@ export class Game extends Phaser.Scene {
 
         const isDiving = this.player.y > 300;
 
+        // Resurface detection: player swam back up above the waterline
+        if (this.wasDiving && !isDiving && this.player.isDivingInitiated) {
+            this.player.isDivingInitiated = false;
+            this.player.setAngle(0);
+            // Snap player onto the boat deck
+            this.player.y = 265;
+            this.player.x = this.boat.x;
+            this.player.body.setVelocity(0, 0);
+            this.createSplash(this.player.x, 300);
+        }
+        this.wasDiving = isDiving;
+
         // Handle Dive Trigger — DOWN arrow or mobile dive button only
         if (!isDiving && !this.player.isDivingInitiated) {
             if (Phaser.Input.Keyboard.JustDown(this.cursors.down) ||
