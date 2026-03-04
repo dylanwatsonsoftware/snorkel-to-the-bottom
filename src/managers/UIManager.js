@@ -18,7 +18,12 @@ export class UIManager {
         this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
         this.crystalsText = this.scene.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
         this.depthText = this.scene.add.text(16, 128, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
-        this.healthText = this.scene.add.text(16, 156, 'Health: ❤️❤️❤️', uiStyle).setScrollFactor(0).setDepth(100);
+
+        const { width } = this.scene.scale;
+        this.healthText = this.scene.add.text(width - 16, 16, 'Health: ❤️❤️❤️', uiStyle)
+            .setScrollFactor(0)
+            .setOrigin(1, 0)
+            .setDepth(100);
 
         this.setupMobileControls();
     }
@@ -43,7 +48,7 @@ export class UIManager {
         const thumbRadius = 30;
 
         const jX = padding + baseRadius + 20;
-        const jY = height - padding - baseRadius - 20 - 40;
+        const jY = height - padding - baseRadius - 70;
 
         this.joystick.base = this.scene.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
             .setScrollFactor(0)
@@ -73,7 +78,7 @@ export class UIManager {
 
         const btnSize = 80;
         const fireX = width - padding - btnSize / 2;
-        const fireY = height - padding - btnSize / 2 - 40;
+        const fireY = height - padding - btnSize / 2 - 80;
 
         this.scene.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
             .setScrollFactor(0)

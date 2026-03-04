@@ -19,14 +19,13 @@ export class Player extends Phaser.GameObjects.Sprite {
     setupSword() {
         this.sword = this.scene.add.container(0, 0).setAlpha(0).setDepth(10);
 
-        // Slightly longer blade for wider arc
-        const bladeTop = this.scene.add.rectangle(10, -2, 55, 3, 0xeeeeee).setOrigin(0, 0.5);
-        const bladeBottom = this.scene.add.rectangle(10, 1, 50, 3, 0xcccccc).setOrigin(0, 0.5);
+        // Simplified blade to look like one solid weapon
+        const blade = this.scene.add.rectangle(10, 0, 55, 6, 0xeeeeee).setOrigin(0, 0.5);
         const hilt = this.scene.add.rectangle(8, 0, 4, 14, 0x8b4513).setOrigin(0.5, 0.5);
         const guard = this.scene.add.circle(5, 0, 6, 0xffd700).setAlpha(0.8);
         const handle = this.scene.add.rectangle(0, 0, 10, 5, 0x333333).setOrigin(0.5, 0.5);
 
-        this.sword.add([bladeTop, bladeBottom, guard, hilt, handle]);
+        this.sword.add([blade, guard, hilt, handle]);
 
         this.scene.physics.add.existing(this.sword);
         // Wider hitbox to match the swing arc
@@ -61,11 +60,13 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
 
         if (this.isSwinging) {
-            this.sword.x = this.x;
-            this.sword.y = this.y;
+            // Apply offset so it looks like it's in the hand
+            const offsetX = this.flipX ? -20 : 20;
+            this.sword.x = this.x + offsetX;
+            this.sword.y = this.y + 5;
             // Sync hitbox position
-            this.sword.body.x = this.x - 30;
-            this.sword.body.y = this.y - 30;
+            this.sword.body.x = this.sword.x - 30;
+            this.sword.body.y = this.sword.y - 30;
         }
     }
 
@@ -74,14 +75,17 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.isSwinging = true;
 
         this.sword.setAlpha(1);
-        this.sword.x = this.x;
-        this.sword.y = this.y;
+        const offsetX = this.flipX ? -20 : 20;
+        this.sword.x = this.x + offsetX;
+        this.sword.y = this.y + 5;
 
-        // Start angle for a wide arc (e.g., -80 to +80 relative to facing)
+        // Start angle for a wide arc
         const startAngle = this.flipX ? 100 : -80;
         const endAngle = this.flipX ? 260 : 80;
 
         this.sword.setAngle(startAngle);
+        // Correct scale based on flip
+        this.sword.setScale(this.flipX ? -1 : 1, 1);
 
         this.scene.tweens.add({
             targets: this.sword,
