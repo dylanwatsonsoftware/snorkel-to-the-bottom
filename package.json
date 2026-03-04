@@ -1,0 +1,19 @@
+{
+  "name": "snorkel-to-the-bottom",
+  "version": "1.0.0",
+  "description": "Tech stack: - npm - HTML - CSS - JavaScript - Phaser 3",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "vite": "4.5.14"
+  }
+}
