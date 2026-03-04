@@ -11,10 +11,12 @@ export class Game extends Phaser.Scene {
         this.money = 0;
         this.crystals = 0;
         this.isDiving = false;
+        this.isGameOver = false;
         this.airText = null;
         this.scoreText = null;
         this.moneyText = null;
         this.crystalsText = null;
+        this.mobileButtons = {};
         this.treasures = null;
         this.airBubbles = null;
         this.scubaTanks = null;
@@ -161,6 +163,17 @@ export class Game extends Phaser.Scene {
         const mermaid = this.mermaids.create(x, y, 'mermaid');
         mermaid.setScale(0.1);
         mermaid.body.setVelocityX(-100);
+
+        // Sometimes drop a crystal
+        if (Phaser.Math.Between(0, 1) === 1) {
+            this.spawnCrystal(x, y);
+        }
+    }
+
+    spawnCrystal(x, y) {
+        const crystal = this.crystalsGroup.create(x, y, 'crystal');
+        crystal.setScale(0.05);
+        crystal.body.setVelocityX(-100);
     }
 
     collectMermaid(player, mermaid) {

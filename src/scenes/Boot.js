@@ -13,6 +13,7 @@ export class Boot extends Phaser.Scene {
         this.load.image('treasure', 'assets/treasure.png');
         this.load.image('mermaid', 'assets/mermaid.png');
         this.load.image('scuba', 'assets/scuba.png');
+        this.load.image('crystal', 'assets/crystal.png');
     }
 
     create() {
