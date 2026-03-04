@@ -89,10 +89,11 @@ export class Game extends Phaser.Scene {
         // Mobile Controls
         this.setupMobileControls();
 
-        // Spawn items
-        this.time.addEvent({ delay: 3000, callback: this.spawnTreasure, callbackScope: this, loop: true });
+        // Initial World Generation
+        this.generateWorldItems();
+
+        // Spawn events (only for consumables and mobile entities)
         this.time.addEvent({ delay: 5000, callback: this.spawnAirBubble, callbackScope: this, loop: true });
-        this.time.addEvent({ delay: 10000, callback: this.spawnScubaTank, callbackScope: this, loop: true });
         this.time.addEvent({ delay: 7000, callback: this.spawnPirate, callbackScope: this, loop: true });
         this.time.addEvent({ delay: 15000, callback: this.spawnMermaid, callbackScope: this, loop: true });
 
@@ -275,10 +276,37 @@ export class Game extends Phaser.Scene {
     }
 
     spawnCrystal(x, y) {
+        // If x and y are not provided, find a safe spot (for world gen)
+        if (x === undefined || y === undefined) {
+            const pos = this.getSafeSpawnPos();
+            if (!pos) return;
+            x = pos.x;
+            y = pos.y;
+        }
         const crystal = this.crystalsGroup.create(x, y, 'crystal');
         crystal.setScale(0.25); // Larger
-        crystal.body.setVelocityX(-50);
+        crystal.body.setVelocityX(Phaser.Math.Between(-20, 20)); // Subtle drift
         crystal.body.setAllowGravity(false);
+    }
+
+    generateWorldItems() {
+        // Deterministic distribution based on depth
+        // More treasures and crystals deeper down
+        const treasureCount = 25;
+        const crystalCount = 15;
+        const scubaCount = 8;
+
+        for (let i = 0; i < treasureCount; i++) {
+            this.spawnTreasure();
+        }
+
+        for (let i = 0; i < crystalCount; i++) {
+            this.spawnCrystal();
+        }
+
+        for (let i = 0; i < scubaCount; i++) {
+            this.spawnScubaTank();
+        }
     }
 
     depleteAir() {
@@ -324,6 +352,8 @@ export class Game extends Phaser.Scene {
         if (!pos) return;
         const tank = this.scubaTanks.create(pos.x, pos.y, 'scuba');
         tank.setScale(0.3);
+        tank.body.setVelocityX(Phaser.Math.Between(-10, 10)); // Very subtle drift
+        tank.body.setAllowGravity(false);
     }
 
     getSafeSpawnPos() {
