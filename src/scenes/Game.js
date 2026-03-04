@@ -16,16 +16,11 @@ export class Game extends Phaser.Scene {
         this.scoreText = null;
         this.moneyText = null;
         this.crystalsText = null;
-        this.mobileInputs = { left: false, right: false, up: false, down: false, fire: false };
-        this.lastFire = false;
-        this.treasures = null;
-        this.airBubbles = null;
-        this.scubaTanks = null;
-        this.pirates = null;
-        this.mermaids = null;
-        this.bullets = null;
         this.lastShotTime = 0;
         this.difficulty = 1;
+        this.depthText = null;
+        this.sword = null;
+        this.isSwinging = false;
     }
 
     create() {
@@ -63,10 +58,18 @@ export class Game extends Phaser.Scene {
         // or just use this.cursors.space.isDown
 
         // UI - Fix to camera
-        this.airText = this.add.text(16, 16, 'Air: 100%', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
-        this.scoreText = this.add.text(16, 48, 'Score: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
-        this.moneyText = this.add.text(16, 80, 'Money: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
-        this.crystalsText = this.add.text(16, 112, 'Crystals: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
+        const uiStyle = { fontSize: '24px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 4 };
+        this.airText = this.add.text(16, 16, 'Air: 100%', uiStyle).setScrollFactor(0).setDepth(100);
+        this.scoreText = this.add.text(16, 48, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.moneyText = this.add.text(16, 80, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.crystalsText = this.add.text(16, 112, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.depthText = this.add.text(16, 144, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
+
+        // Sword placeholder (will be used for swing)
+        this.sword = this.add.rectangle(0, 0, 40, 10, 0xcccccc).setOrigin(0, 0.5).setAlpha(0);
+        this.physics.add.existing(this.sword);
+        this.sword.body.setAllowGravity(false);
+        this.sword.body.setImmovable(true);
 
         // Groups
         this.treasures = this.physics.add.group();
@@ -186,6 +189,10 @@ export class Game extends Phaser.Scene {
             }
         });
 
+        // Update Depth
+        const currentDepth = Math.max(0, Math.floor((this.player.y - 300) / 10)); // 1m per 10 pixels
+        this.depthText.setText(`Depth: ${currentDepth}m`);
+
         // Update UI
         this.airText.setText(`Air: ${Math.floor(this.air)}%`);
         this.scoreText.setText(`Score: ${this.score}`);
@@ -194,10 +201,39 @@ export class Game extends Phaser.Scene {
     }
 
     shoot() {
-        const bullet = this.bullets.create(this.player.x, this.player.y, null);
-        this.add.rectangle(this.player.x, this.player.y, 10, 5, 0xff0000);
-        bullet.body.setVelocityX(400);
-        bullet.body.setAllowGravity(false);
+        this.swingSword();
+    }
+
+    swingSword() {
+        if (this.isSwinging) return;
+        this.isSwinging = true;
+
+        this.sword.setAlpha(1);
+        this.sword.x = this.player.x;
+        this.sword.y = this.player.y;
+        this.sword.setAngle(this.player.flipX ? 180 : 0);
+
+        // Movement with player
+        const swingTween = this.tweens.add({
+            targets: this.sword,
+            angle: this.player.flipX ? 270 : 90,
+            duration: 150,
+            ease: 'Power2',
+            onUpdate: () => {
+                this.sword.x = this.player.x;
+                this.sword.y = this.player.y;
+            },
+            onComplete: () => {
+                this.sword.setAlpha(0);
+                this.isSwinging = false;
+            }
+        });
+
+        // Check for hits
+        this.physics.overlap(this.sword, this.pirates, (s, pirate) => {
+            pirate.destroy();
+            this.score += 200;
+        });
     }
 
     spawnPirate() {
@@ -238,29 +274,51 @@ export class Game extends Phaser.Scene {
     }
 
     spawnTreasure() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const treasure = this.treasures.create(x, y, 'treasure');
+        const pos = this.getSafeSpawnPos();
+        if (!pos) return;
+        const treasure = this.treasures.create(pos.x, pos.y, 'treasure');
         treasure.setScale(0.25);
         treasure.setDepth(0);
     }
 
     spawnAirBubble() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const bubble = this.airBubbles.create(x, y, null);
-        const visual = this.add.circle(x, y, 10, 0x00ffff, 0.4);
-        bubble.setData('visual', visual);
-        bubble.body.setSize(20, 20);
+        const pos = this.getSafeSpawnPos();
+        if (!pos) return;
+        const bubble = this.airBubbles.create(pos.x, pos.y, null);
+
+        // Multi-layered visual for a better bubble look
+        const container = this.add.container(pos.x, pos.y);
+        const main = this.add.circle(0, 0, 12, 0xadd8e6, 0.4);
+        const highlight = this.add.circle(-4, -4, 4, 0xffffff, 0.6);
+        container.add([main, highlight]);
+
+        bubble.setData('visual', container);
+        bubble.body.setSize(24, 24);
         bubble.body.setAllowGravity(false);
-        bubble.body.setVelocityY(-20);
+        bubble.body.setVelocityY(-30);
     }
 
     spawnScubaTank() {
-        const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(400, 2900);
-        const tank = this.scubaTanks.create(x, y, 'scuba');
+        const pos = this.getSafeSpawnPos();
+        if (!pos) return;
+        const tank = this.scubaTanks.create(pos.x, pos.y, 'scuba');
         tank.setScale(0.3);
+    }
+
+    getSafeSpawnPos() {
+        let attempts = 0;
+        while (attempts < 5) {
+            const x = Phaser.Math.Between(50, 750);
+            const y = Phaser.Math.Between(400, 2900);
+
+            // Minimal overlap check
+            const nearby = this.physics.overlapCirc(x, y, 50);
+            if (nearby.length === 0) {
+                return { x, y };
+            }
+            attempts++;
+        }
+        return null;
     }
 
     collectTreasure(player, treasure) {
