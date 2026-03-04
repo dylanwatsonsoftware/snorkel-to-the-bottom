@@ -26,21 +26,30 @@ export class Game extends Phaser.Scene {
     }
 
     create() {
+        // World bounds for deep diving
+        this.physics.world.setBounds(0, 0, 800, 3000);
+
         // Background
-        this.add.rectangle(400, 300, 800, 600, 0x00aaff); // Sky/Surface
-        this.add.rectangle(400, 450, 800, 300, 0x004488); // Water
+        // Sky
+        this.add.rectangle(400, 0, 800, 300, 0x87ceeb).setOrigin(0.5, 0);
+        // Water
+        this.add.rectangle(400, 300, 800, 2700, 0x004488).setOrigin(0.5, 0);
 
         // Boat
-        this.boat = this.add.rectangle(100, 280, 100, 20, 0x8b4513); // Brown boat
-        this.physics.add.existing(this.boat);
+        this.boat = this.physics.add.sprite(100, 280, 'boat');
+        this.boat.setScale(0.5); // Adjust scale if needed
         this.boat.body.setAllowGravity(false);
         this.boat.body.setImmovable(true);
 
         // Player (Pirate Snorkeller)
         // Starts on the boat
-        this.player = this.add.rectangle(100, 250, 40, 40, 0xffcc00);
-        this.physics.add.existing(this.player);
+        this.player = this.physics.add.sprite(100, 220, 'snorkeller');
+        this.player.setScale(0.1); // Adjust scale if needed
         this.player.body.setCollideWorldBounds(true);
+
+        // Camera follow
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setBounds(0, 0, 800, 3000);
 
         // Boat and Player Interaction
         this.physics.add.collider(this.player, this.boat);
@@ -50,11 +59,11 @@ export class Game extends Phaser.Scene {
         // spaceBar is already included in cursors, but we can add it explicitly if needed
         // or just use this.cursors.space.isDown
 
-        // UI
-        this.airText = this.add.text(16, 16, 'Air: 100%', { fontSize: '24px', fill: '#fff' });
-        this.scoreText = this.add.text(16, 48, 'Score: 0', { fontSize: '24px', fill: '#fff' });
-        this.moneyText = this.add.text(16, 80, 'Money: 0', { fontSize: '24px', fill: '#fff' });
-        this.crystalsText = this.add.text(16, 112, 'Crystals: 0', { fontSize: '24px', fill: '#fff' });
+        // UI - Fix to camera
+        this.airText = this.add.text(16, 16, 'Air: 100%', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
+        this.scoreText = this.add.text(16, 48, 'Score: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
+        this.moneyText = this.add.text(16, 80, 'Money: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
+        this.crystalsText = this.add.text(16, 112, 'Crystals: 0', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
 
         // Groups
         this.treasures = this.physics.add.group();
@@ -140,19 +149,17 @@ export class Game extends Phaser.Scene {
 
     spawnPirate() {
         const x = 850;
-        const y = Phaser.Math.Between(50, 550);
-        const pirate = this.pirates.create(x, y, null);
-        pirate.setTint(0xff0000);
-        this.add.rectangle(x, y, 40, 40, 0xff0000);
+        const y = Phaser.Math.Between(400, 2800);
+        const pirate = this.pirates.create(x, y, 'pirate');
+        pirate.setScale(0.1);
         pirate.body.setVelocityX(-150 * this.difficulty);
     }
 
     spawnMermaid() {
         const x = 850;
-        const y = Phaser.Math.Between(350, 550);
-        const mermaid = this.mermaids.create(x, y, null);
-        mermaid.setTint(0x00ff00);
-        this.add.rectangle(x, y, 30, 50, 0xff00ff);
+        const y = Phaser.Math.Between(400, 2800);
+        const mermaid = this.mermaids.create(x, y, 'mermaid');
+        mermaid.setScale(0.1);
         mermaid.body.setVelocityX(-100);
     }
 
@@ -160,6 +167,7 @@ export class Game extends Phaser.Scene {
         mermaid.destroy();
         this.crystals += 1;
         this.money += 100;
+        this.score += 500;
     }
 
     hitByEnemy(player, enemy) {
@@ -174,27 +182,24 @@ export class Game extends Phaser.Scene {
 
     spawnTreasure() {
         const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(350, 550);
-        const treasure = this.treasures.create(x, y, null);
-        treasure.body.setSize(20, 20);
-        treasure.setTint(0xffd700);
-        this.add.rectangle(x, y, 20, 20, 0xffd700); // Visual indicator since we don't have assets yet
+        const y = Phaser.Math.Between(400, 2900);
+        const treasure = this.treasures.create(x, y, 'treasure');
+        treasure.setScale(0.05);
     }
 
     spawnAirBubble() {
         const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(350, 550);
+        const y = Phaser.Math.Between(400, 2900);
         const bubble = this.airBubbles.create(x, y, null);
+        this.add.circle(x, y, 5, 0x00ffff, 0.5);
         bubble.body.setSize(10, 10);
-        this.add.circle(x, y, 5, 0xffffff, 0.5);
     }
 
     spawnScubaTank() {
         const x = Phaser.Math.Between(50, 750);
-        const y = Phaser.Math.Between(350, 550);
-        const tank = this.scubaTanks.create(x, y, null);
-        tank.body.setSize(20, 30);
-        this.add.rectangle(x, y, 20, 30, 0x00ff00);
+        const y = Phaser.Math.Between(400, 2900);
+        const tank = this.scubaTanks.create(x, y, 'scuba');
+        tank.setScale(0.05);
     }
 
     collectTreasure(player, treasure) {
