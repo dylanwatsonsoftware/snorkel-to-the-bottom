@@ -103,6 +103,10 @@ export class Game extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        // Ensure everything is in front of BG but behind UI
+        this.add.rectangle(400, 0, 800, 300, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
+        this.add.rectangle(400, 300, 800, 2700, 0x004488).setOrigin(0.5, 0).setDepth(-1);
     }
 
     update() {
@@ -132,45 +136,31 @@ export class Game extends Phaser.Scene {
         }
 
         // Dive Animation and Transition Logic
-        const wasDiving = this.isDiving;
         this.isDiving = this.player.y > 300;
-
-        if (this.isDiving && !wasDiving) {
-            // Just started diving
-            this.tweens.add({
-                targets: this.player,
-                angle: 180,
-                duration: 200,
-                ease: 'Power1'
-            });
-        } else if (!this.isDiving && wasDiving) {
-            // Just surfaced
-            this.tweens.add({
-                targets: this.player,
-                angle: 0,
-                duration: 200,
-                ease: 'Power1'
-            });
-        }
 
         // Swimming Wobble and Angle
         if (this.isDiving) {
-            // Rotate based on movement direction
-            if (moveY < 0) this.player.setAngle(225); // Up and slightly rotated
-            else if (moveY > 1) this.player.setAngle(135); // Down
-            else if (moveX < 0) this.player.setAngle(180);
-            else if (moveX > 0) this.player.setAngle(0);
-            else this.player.setAngle(180); // Default diving angle (facing down/side)
+            // Face direction
+            if (moveX < 0) this.player.setFlipX(true);
+            else if (moveX > 0) this.player.setFlipX(false);
 
-            // Wobble
-            this.player.setAngle(this.player.angle + Math.sin(this.time.now / 100) * 5);
+            // Vertical Angle
+            let targetAngle = 0;
+            if (moveY < 0) targetAngle = this.player.flipX ? 45 : -45; // Swimming Up
+            else if (moveY > 0) targetAngle = this.player.flipX ? -45 : 45; // Swimming Down
+
+            // Smooth transition/Wobble
+            const swimWobble = Math.sin(this.time.now / 150) * 10;
+            this.player.setAngle(targetAngle + swimWobble);
         } else {
             this.player.setAngle(0);
+            if (moveX < 0) this.player.setFlipX(true);
+            else if (moveX > 0) this.player.setFlipX(false);
         }
 
         // Boat Collider Logic (allow re-boarding)
-        // Only collide if player is above the boat deck and not swimming up
-        if (this.player.y < 250 && moveY >= 0) {
+        // Only solid if player is above the boat deck and not swimming up
+        if (this.player.y < this.boat.y - 40 && moveY >= 0) {
             this.boatCollider.active = true;
         } else {
             this.boatCollider.active = false;
@@ -182,6 +172,19 @@ export class Game extends Phaser.Scene {
             this.shoot();
         }
         this.lastFire = this.mobileInputs?.fire;
+
+        // Update air bubbles
+        this.airBubbles.getChildren().forEach(bubble => {
+            const visual = bubble.getData('visual');
+            if (visual) {
+                visual.x = bubble.x;
+                visual.y = bubble.y;
+                if (bubble.y < 300) {
+                    visual.destroy();
+                    bubble.destroy();
+                }
+            }
+        });
 
         // Update UI
         this.airText.setText(`Air: ${Math.floor(this.air)}%`);
@@ -201,7 +204,7 @@ export class Game extends Phaser.Scene {
         const x = 850;
         const y = Phaser.Math.Between(400, 2800);
         const pirate = this.pirates.create(x, y, 'pirate');
-        pirate.setScale(0.3); // Increased scale
+        pirate.setScale(0.4); // Larger
         pirate.body.setVelocityX(-150 * this.difficulty);
     }
 
@@ -220,8 +223,67 @@ export class Game extends Phaser.Scene {
 
     spawnCrystal(x, y) {
         const crystal = this.crystalsGroup.create(x, y, 'crystal');
-        crystal.setScale(0.15); // Increased scale
-        crystal.body.setVelocityX(-100);
+        crystal.setScale(0.25); // Larger
+        crystal.body.setVelocityX(-50);
+        crystal.body.setAllowGravity(false);
+    }
+
+    depleteAir() {
+        if (!this.isDiving || this.isGameOver) return;
+        this.air -= 2;
+        if (this.air <= 0) {
+            this.air = 0;
+            this.gameOver();
+        }
+    }
+
+    spawnTreasure() {
+        const x = Phaser.Math.Between(50, 750);
+        const y = Phaser.Math.Between(400, 2900);
+        const treasure = this.treasures.create(x, y, 'treasure');
+        treasure.setScale(0.25);
+        treasure.setDepth(0);
+    }
+
+    spawnAirBubble() {
+        const x = Phaser.Math.Between(50, 750);
+        const y = Phaser.Math.Between(400, 2900);
+        const bubble = this.airBubbles.create(x, y, null);
+        const visual = this.add.circle(x, y, 10, 0x00ffff, 0.4);
+        bubble.setData('visual', visual);
+        bubble.body.setSize(20, 20);
+        bubble.body.setAllowGravity(false);
+        bubble.body.setVelocityY(-20);
+    }
+
+    spawnScubaTank() {
+        const x = Phaser.Math.Between(50, 750);
+        const y = Phaser.Math.Between(400, 2900);
+        const tank = this.scubaTanks.create(x, y, 'scuba');
+        tank.setScale(0.3);
+    }
+
+    collectTreasure(player, treasure) {
+        treasure.destroy();
+        this.money += 200;
+        this.score += 500;
+    }
+
+    collectAir(player, bubble) {
+        const visual = bubble.getData('visual');
+        if (visual) visual.destroy();
+        bubble.destroy();
+        this.air = Math.min(100, this.air + 5);
+    }
+
+    collectScuba(player, tank) {
+        tank.destroy();
+        this.air = 100;
+        this.score += 100;
+    }
+
+    hitByEnemy(player, enemy) {
+        this.gameOver();
     }
 
     collectMermaid(player, mermaid) {
@@ -235,6 +297,12 @@ export class Game extends Phaser.Scene {
         crystal.destroy();
         this.crystals += 1;
         this.score += 1000;
+    }
+
+    killEnemy(bullet, enemy) {
+        bullet.destroy();
+        enemy.destroy();
+        this.score += 200;
     }
 
     gameOver() {
