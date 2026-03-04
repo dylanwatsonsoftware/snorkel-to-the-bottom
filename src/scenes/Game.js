@@ -156,14 +156,20 @@ export class Game extends Phaser.Scene {
             if (moveX < 0) this.player.setFlipX(true);
             else if (moveX > 0) this.player.setFlipX(false);
 
-            // Vertical Angle
-            let targetAngle = 0;
-            if (moveY < 0) targetAngle = this.player.flipX ? 45 : -45; // Swimming Up
-            else if (moveY > 0) targetAngle = this.player.flipX ? -45 : 45; // Swimming Down
+            const isMoving = moveX !== 0 || moveY !== 0;
 
-            // Smooth transition/Wobble
-            const swimWobble = Math.sin(this.time.now / 150) * 10;
-            this.player.setAngle(targetAngle + swimWobble);
+            if (isMoving) {
+                // Vertical Angle
+                let targetAngle = 0;
+                if (moveY < 0) targetAngle = this.player.flipX ? 45 : -45; // Swimming Up
+                else if (moveY > 0) targetAngle = this.player.flipX ? -45 : 45; // Swimming Down
+
+                // Smooth transition/Wobble
+                const swimWobble = Math.sin(this.time.now / 150) * 10;
+                this.player.setAngle(targetAngle + swimWobble);
+            } else {
+                this.player.setAngle(0);
+            }
         } else {
             this.player.setAngle(0);
             if (moveX < 0) this.player.setFlipX(true);
