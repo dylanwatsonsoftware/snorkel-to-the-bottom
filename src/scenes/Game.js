@@ -422,7 +422,7 @@ export class Game extends Phaser.Scene {
 
         // Joystick Base
         const jX = padding + baseRadius + 20;
-        const jY = height - padding - baseRadius - 20;
+        const jY = height - padding - baseRadius - 20 - 40; // Lifted by 40px
 
         this.joystick.base = this.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
             .setScrollFactor(0)
@@ -440,7 +440,7 @@ export class Game extends Phaser.Scene {
         // Fire Button
         const btnSize = 80;
         const fireX = width - padding - btnSize / 2;
-        const fireY = height - padding - btnSize / 2;
+        const fireY = height - padding - btnSize / 2 - 40; // Lifted by 40px
 
         const fireBtn = this.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
             .setScrollFactor(0)
