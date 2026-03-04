@@ -60,10 +60,11 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
 
         if (this.isSwinging) {
-            // Apply offset so it looks like it's in the hand
-            const offsetX = this.flipX ? -15 : 15;
+            // Unified offset so it looks like it's in the hand
+            const offsetX = this.flipX ? -20 : 20;
+            const offsetY = 5;
             this.sword.x = this.x + offsetX;
-            this.sword.y = this.y + 10;
+            this.sword.y = this.y + offsetY;
             // Sync hitbox position
             this.sword.body.x = this.sword.x - 60;
             this.sword.body.y = this.sword.y - 60;
@@ -76,8 +77,9 @@ export class Player extends Phaser.GameObjects.Sprite {
 
         this.sword.setAlpha(1);
         const offsetX = this.flipX ? -20 : 20;
+        const offsetY = 5;
         this.sword.x = this.x + offsetX;
-        this.sword.y = this.y + 5;
+        this.sword.y = this.y + offsetY;
 
         // Start angle for a massive centered arc
         // Facing Right: -90 to +90 (sweeping across the front)
@@ -98,6 +100,8 @@ export class Player extends Phaser.GameObjects.Sprite {
                 this.isSwinging = false;
             }
         });
+
+        if (this.scene.soundManager) this.scene.soundManager.play('swing');
     }
 
     takeDamage() {
@@ -105,6 +109,8 @@ export class Player extends Phaser.GameObjects.Sprite {
 
         this.health--;
         this.isInvincible = true;
+
+        if (this.scene.soundManager) this.scene.soundManager.play('hurt');
 
         // Flicker effect
         this.scene.tweens.add({

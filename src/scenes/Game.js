@@ -80,7 +80,10 @@ export class Game extends Phaser.Scene {
         this.player.update(moveX, moveY, 200, isDiving);
         this.boat.update(isDiving, moveX, 200);
 
-        if (!isDiving && this.air < 100) this.air = 100;
+        if (!isDiving) {
+            if (this.air < 100) this.air = 100;
+            if (this.player.health < 3) this.player.health = 3;
+        }
 
         if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.fire) {
             this.player.swingSword();
@@ -184,14 +187,35 @@ export class Game extends Phaser.Scene {
         return null;
     }
 
-    collectTreasure(p, t) { t.destroy(); this.money += 200; this.score += 500; }
+    collectTreasure(p, t) {
+        t.destroy(); this.money += 200; this.score += 500;
+        this.soundManager.play('collect');
+    }
     collectAir(p, b) {
         const v = b.getData('visual'); if (v) v.destroy(); b.destroy();
         this.air = Math.min(100, this.air + 5);
+        this.soundManager.play('bubble');
     }
-    collectScuba(p, t) { t.destroy(); this.air = 100; this.score += 100; }
-    collectMermaid(p, m) { m.destroy(); this.crystals += 1; this.money += 100; this.score += 500; }
-    collectCrystal(p, c) { c.destroy(); this.crystals += 1; this.score += 1000; }
+    collectScuba(p, t) {
+        t.destroy(); this.air = 100; this.score += 100;
+        this.soundManager.play('scuba');
+    }
+    collectMermaid(p, m) {
+        m.destroy(); this.crystals += 1; this.money += 100; this.score += 500;
+        p.health = Math.min(3, p.health + 1);
+        this.soundManager.play('mermaid');
+    }
+    collectCrystal(p, c) {
+        c.destroy(); this.crystals += 1; this.score += 1000;
+        this.soundManager.play('crystal');
+    }
+
+    setupSounds() {
+        // Placeholders for sound effects
+        this.soundManager = {
+            play: (key) => console.log(`SFX: ${key}`)
+        };
+    }
 
     gameOver() {
         if (this.isGameOver) return;
