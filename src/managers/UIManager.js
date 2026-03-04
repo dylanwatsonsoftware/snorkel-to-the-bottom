@@ -48,7 +48,7 @@ export class UIManager {
         const thumbRadius = 30;
 
         const jX = padding + baseRadius + 20;
-        const jY = height - padding - baseRadius - 70;
+        const jY = height - padding - baseRadius - 90;
 
         this.joystick.base = this.scene.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
             .setScrollFactor(0)
