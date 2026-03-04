@@ -33,8 +33,8 @@ export class Game extends Phaser.Scene {
         this.crystalsGroup = this.physics.add.group();
 
         // Entities
-        this.boat = new Boat(this, width / 4, 280);
-        this.player = new Player(this, width / 4, 220);
+        this.boat = new Boat(this, width / 4, 305);
+        this.player = new Player(this, width / 4, 265);
 
         // Managers
         this.worldManager = new WorldManager(this);
@@ -55,7 +55,8 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
         this.physics.add.overlap(this.player, this.pirates, (p, e) => this.player.takeDamage(), null, this);
         this.physics.add.collider(this.player, this.boat, null, (p, b) => {
-            // Only solid if player is falling from above
+            // Only solid if player is falling from above and NOT in the middle of a dive
+            if (p.isDivingInitiated) return false;
             return p.y < b.y - 40 && p.body.velocity.y >= 0;
         }, this);
 
@@ -64,6 +65,32 @@ export class Game extends Phaser.Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
         this.time.addEvent({ delay: 1000, callback: () => this.depleteAir(), loop: true });
+
+        // Depth-Based Lighting Overlay
+        this.setupLighting();
+    }
+
+    setupLighting() {
+        const { width } = this.scale;
+        const worldWidth = Math.max(width, 800);
+
+        // Create a full-screen black rectangle covering the dive area
+        // Starts at y=300 and extends to the bottom
+        this.lightingOverlay = this.add.rectangle(worldWidth / 2, 1650, worldWidth, 2700, 0x000000)
+            .setOrigin(0.5, 0.5)
+            .setAlpha(0)
+            .setDepth(50);
+
+        // Flashlight Effect: Create a circle mask
+        const graphics = this.make.graphics({ add: false });
+        graphics.fillStyle(0xffffff, 1);
+        graphics.fillCircle(100, 100, 100); // 100px radius
+        graphics.generateTexture('flashlight-mask', 200, 200);
+
+        this.flashlightMaskImage = this.add.image(0, 0, 'flashlight-mask').setVisible(false);
+        const mask = this.flashlightMaskImage.createBitmapMask();
+        mask.invertAlpha = true; // Make the circle a "hole" in the overlay
+        this.lightingOverlay.setMask(mask);
     }
 
     update() {
@@ -80,15 +107,34 @@ export class Game extends Phaser.Scene {
         else if (this.cursors.down.isDown) moveY = 1;
 
         const isDiving = this.player.y > 300;
+
+        // Handle Dive Trigger — DOWN arrow or mobile dive button only
+        if (!isDiving && !this.player.isDivingInitiated) {
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.down) ||
+                this.uiManager.mobileInputs.dive) {
+
+                this.player.dive(() => {
+                    // Splash effect on water entry
+                    this.createSplash(this.player.x, 300);
+                });
+            }
+        }
+
         this.player.update(moveX, moveY, 200, isDiving);
         this.boat.update(isDiving, moveX, 200);
 
-        if (!isDiving) {
+        if (!isDiving && !this.player.isDivingInitiated) {
             if (this.air < 100) this.air = 100;
             if (this.player.health < 3) this.player.health = 3;
+            // Snap player to boat deck if not diving
+            // This ensures they don't drift if the boat moves
+            if (Math.abs(this.player.x - this.boat.x) > 50) {
+                this.player.x = this.boat.x;
+            }
         }
 
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.fire) {
+        // Sword swing only works once diving
+        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.fire)) {
             this.player.swingSword();
         }
 
@@ -111,7 +157,26 @@ export class Game extends Phaser.Scene {
             }
         });
 
+        // Update depth-based lighting
+        this.updateLighting();
+
         this.uiManager.update(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
+    }
+
+    updateLighting() {
+        if (!this.lightingOverlay) return;
+
+        // target_alpha = Math.min(0.8, (player.y - 300) / 2700)
+        const targetAlpha = Math.max(0, Math.min(0.8, (this.player.y - 300) / 2700));
+
+        // Lerp the rectangle's alpha toward target_alpha
+        this.lightingOverlay.alpha = Phaser.Math.Linear(this.lightingOverlay.alpha, targetAlpha, 0.05);
+
+        // Update flashlight position
+        if (this.flashlightMaskImage) {
+            this.flashlightMaskImage.x = this.player.x;
+            this.flashlightMaskImage.y = this.player.y;
+        }
     }
 
     depleteAir() {
@@ -218,6 +283,24 @@ export class Game extends Phaser.Scene {
         this.soundManager = {
             play: (key) => console.log(`SFX: ${key}`)
         };
+    }
+
+    createSplash(x, y) {
+        for (let i = 0; i < 8; i++) {
+            const circle = this.add.circle(x, y, Phaser.Math.Between(2, 5), 0xffffff, 0.8);
+            this.physics.add.existing(circle);
+            circle.body.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(-50, -150));
+            circle.body.setGravityY(300);
+
+            this.tweens.add({
+                targets: circle,
+                alpha: 0,
+                scale: 0.1,
+                duration: Phaser.Math.Between(500, 800),
+                onComplete: () => circle.destroy()
+            });
+        }
+        if (this.soundManager) this.soundManager.play('splash');
     }
 
     gameOver() {

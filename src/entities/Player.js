@@ -13,6 +13,7 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.isSwinging = false;
         this.health = 3;
         this.isInvincible = false;
+        this.isDivingInitiated = false;
         this.setupSword();
     }
 
@@ -20,10 +21,10 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.sword = this.scene.add.container(0, 0).setAlpha(0).setDepth(10);
 
         // Massive blade for huge reach
-        const blade = this.scene.make.rectangle({ width: 85, height: 8, fillColor: 0xeeeeee }).setOrigin(0, 0.5).setX(10);
-        const hilt = this.scene.make.rectangle({ width: 4, height: 18, fillColor: 0x8b4513 }).setOrigin(0.5, 0.5).setX(8);
+        const blade = this.scene.add.rectangle(10, 0, 85, 8, 0xeeeeee).setOrigin(0, 0.5);
+        const hilt = this.scene.add.rectangle(8, 0, 4, 18, 0x8b4513).setOrigin(0.5, 0.5);
         const guard = this.scene.make.graphics().fillStyle(0xffd700, 0.8).fillCircle(5, 0, 8);
-        const handle = this.scene.make.rectangle({ width: 12, height: 6, fillColor: 0x333333 }).setOrigin(0.5, 0.5);
+        const handle = this.scene.add.rectangle(0, 0, 12, 6, 0x333333).setOrigin(0.5, 0.5);
 
         this.sword.add([blade, guard, hilt, handle]);
 
@@ -34,10 +35,41 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.sword.body.setImmovable(true);
     }
 
+    dive(onComplete) {
+        if (this.isDivingInitiated) return;
+        this.isDivingInitiated = true;
+
+        // Jump up and dive down
+        this.scene.tweens.add({
+            targets: this,
+            y: this.y - 60,
+            angle: this.flipX ? 45 : -45,
+            duration: 300,
+            ease: 'Power1.out',
+            onComplete: () => {
+                this.scene.tweens.add({
+                    targets: this,
+                    y: 320,
+                    angle: this.flipX ? 135 : -135,
+                    duration: 400,
+                    ease: 'Power1.in',
+                    onComplete: () => {
+                        this.angle = 0;
+                        if (onComplete) onComplete();
+                    }
+                });
+            }
+        });
+    }
+
     update(moveX, moveY, speed, isDiving) {
-        this.body.setVelocity(moveX * speed, moveY * speed);
+        if (this.isDivingInitiated && !isDiving) {
+            this.body.setVelocity(0, 0);
+            return;
+        }
 
         if (isDiving) {
+            this.body.setVelocity(moveX * speed, moveY * speed);
             if (moveX < 0) this.setFlipX(true);
             else if (moveX > 0) this.setFlipX(false);
 
@@ -54,6 +86,7 @@ export class Player extends Phaser.GameObjects.Sprite {
                 this.setAngle(0);
             }
         } else {
+            this.body.setVelocity(moveX * speed, 0);
             this.setAngle(0);
             if (moveX < 0) this.setFlipX(true);
             else if (moveX > 0) this.setFlipX(false);
