@@ -18,9 +18,8 @@ export class Game extends Phaser.Scene {
         this.crystalsText = null;
         this.lastShotTime = 0;
         this.difficulty = 1;
-        this.depthText = null;
-        this.sword = null;
         this.isSwinging = false;
+        this.joystick = { base: null, thumb: null, active: false, x: 0, y: 0, distance: 0, angle: 0 };
     }
 
     create() {
@@ -113,11 +112,18 @@ export class Game extends Phaser.Scene {
         let moveX = 0;
         let moveY = 0;
 
-        if (this.cursors.left.isDown || this.mobileInputs?.left) moveX = -1;
-        else if (this.cursors.right.isDown || this.mobileInputs?.right) moveX = 1;
+        // Keyboard
+        if (this.cursors.left.isDown) moveX = -1;
+        else if (this.cursors.right.isDown) moveX = 1;
 
-        if (this.cursors.up.isDown || this.mobileInputs?.up) moveY = -1;
-        else if (this.cursors.down.isDown || this.mobileInputs?.down) moveY = 1;
+        if (this.cursors.up.isDown) moveY = -1;
+        else if (this.cursors.down.isDown) moveY = 1;
+
+        // Joystick (Mobile)
+        if (this.joystick.active) {
+            moveX = Math.cos(this.joystick.angle) * (this.joystick.distance / 50);
+            moveY = Math.sin(this.joystick.angle) * (this.joystick.distance / 50);
+        }
 
         // Set Velocities
         this.player.body.setVelocity(moveX * speed, moveY * speed);
@@ -378,40 +384,71 @@ export class Game extends Phaser.Scene {
     }
 
     setupMobileControls() {
-        this.mobileInputs = { left: false, right: false, up: false, down: false, fire: false };
         const { width, height } = this.scale;
+        this.mobileInputs = { fire: false };
 
-        // Grouped Layout
-        const btnSize = 65;
         const padding = 20;
+        const baseRadius = 60;
+        const thumbRadius = 30;
 
-        const createBtn = (x, y, label, callbackDown, callbackUp) => {
-            const btn = this.add.rectangle(x, y, btnSize, btnSize, 0xffffff, 0.2)
-                .setScrollFactor(0)
-                .setInteractive()
-                .on('pointerdown', callbackDown)
-                .on('pointerup', callbackUp)
-                .on('pointerout', callbackUp);
-            this.add.text(x, y, label, { fontSize: '28px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
-            return btn;
-        };
+        // Joystick Base
+        const jX = padding + baseRadius + 20;
+        const jY = height - padding - baseRadius - 20;
 
-        // Left Group (D-pad style)
-        const leftX = padding + btnSize + 10;
-        const bottomY = height - padding - btnSize / 2;
+        this.joystick.base = this.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
+            .setScrollFactor(0)
+            .setDepth(100)
+            .setInteractive();
 
-        createBtn(leftX, bottomY - btnSize - 5, '↑', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
-        createBtn(leftX, bottomY + 5, '↓', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
-        createBtn(leftX - btnSize - 5, bottomY, '←', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
-        createBtn(leftX + btnSize + 5, bottomY, '→', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
+        this.joystick.thumb = this.add.circle(jX, jY, thumbRadius, 0xffffff, 0.3)
+            .setScrollFactor(0)
+            .setDepth(101);
 
-        // Right Group (Action)
-        const rightX = width - padding - btnSize;
-        createBtn(rightX, bottomY, 'FIRE', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
+        this.joystick.base.on('pointerdown', (pointer) => this.handleJoystickMove(pointer));
+        this.joystick.base.on('pointermove', (pointer) => this.handleJoystickMove(pointer));
+        this.input.on('pointerup', () => this.resetJoystick());
 
-        // Help adjustment: if screen is too narrow, push move buttons closer
-        if (width < 400) {
-            // Adjust positions if needed
-        }
+        // Fire Button
+        const btnSize = 80;
+        const fireX = width - padding - btnSize / 2;
+        const fireY = height - padding - btnSize / 2;
+
+        const fireBtn = this.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
+            .setScrollFactor(0)
+            .setInteractive()
+            .setDepth(100)
+            .on('pointerdown', () => this.mobileInputs.fire = true)
+            .on('pointerup', () => this.mobileInputs.fire = false)
+            .on('pointerout', () => this.mobileInputs.fire = false);
+
+        this.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(101);
+    }
+
+    handleJoystickMove(pointer) {
+        if (!pointer.isDown) return;
+
+        const base = this.joystick.base;
+        const dx = pointer.x - base.x;
+        const dy = pointer.y - base.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const maxDistance = 60;
+
+        this.joystick.active = true;
+        this.joystick.distance = Math.min(distance, maxDistance);
+        this.joystick.angle = Math.atan2(dy, dx);
+
+        const thumbX = base.x + Math.cos(this.joystick.angle) * this.joystick.distance;
+        const thumbY = base.y + Math.sin(this.joystick.angle) * this.joystick.distance;
+
+        this.joystick.thumb.setPosition(thumbX, thumbY);
+    }
+
+    resetJoystick() {
+        this.joystick.active = false;
+        this.joystick.distance = 0;
+        this.joystick.thumb.setPosition(this.joystick.base.x, this.joystick.base.y);
     }
 }
