@@ -24,49 +24,49 @@ export class Game extends Phaser.Scene {
     }
 
     create() {
+        const { width, height } = this.scale;
+
         // World bounds for deep diving
-        this.physics.world.setBounds(0, 0, 800, 3000);
+        this.physics.world.setBounds(0, 0, Math.max(width, 800), 3000);
 
         // Background
-        // Sky
-        this.add.rectangle(400, 0, 800, 300, 0x87ceeb).setOrigin(0.5, 0);
+        // Sky depth: 20% of screen or 300px
+        const skyHeight = 300;
+        this.add.rectangle(width / 2, 0, width, skyHeight, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
         // Water
-        this.add.rectangle(400, 300, 800, 2700, 0x004488).setOrigin(0.5, 0);
+        this.add.rectangle(width / 2, skyHeight, width, 3000 - skyHeight, 0x004488).setOrigin(0.5, 0).setDepth(-1);
 
         // Boat
-        this.boat = this.physics.add.sprite(100, 280, 'boat');
-        this.boat.setScale(0.5); // Adjust scale if needed
+        this.boat = this.physics.add.sprite(width / 4, 280, 'boat');
+        this.boat.setScale(0.5);
         this.boat.body.setAllowGravity(false);
         this.boat.body.setImmovable(true);
 
         // Player (Pirate Snorkeller)
-        // Starts on the boat
-        this.player = this.physics.add.sprite(100, 220, 'snorkeller');
-        this.player.setScale(0.35); // 70% of 0.5
+        this.player = this.physics.add.sprite(width / 4, 220, 'snorkeller');
+        this.player.setScale(0.35);
         this.player.body.setCollideWorldBounds(true);
 
         // Camera follow
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-        this.cameras.main.setBounds(0, 0, 800, 3000);
+        this.cameras.main.setBounds(0, 0, Math.max(width, 800), 3000);
 
         // Boat and Player Interaction
         this.boatCollider = this.physics.add.collider(this.player, this.boat);
 
         // Controls
         this.cursors = this.input.keyboard.createCursorKeys();
-        // spaceBar is already included in cursors, but we can add it explicitly if needed
-        // or just use this.cursors.space.isDown
 
         // UI - Fix to camera
-        const uiStyle = { fontSize: '24px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 4 };
+        const uiStyle = { fontSize: '20px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
         this.airText = this.add.text(16, 16, 'Air: 100%', uiStyle).setScrollFactor(0).setDepth(100);
-        this.scoreText = this.add.text(16, 48, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.moneyText = this.add.text(16, 80, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.crystalsText = this.add.text(16, 112, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.depthText = this.add.text(16, 144, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
+        this.scoreText = this.add.text(16, 44, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.moneyText = this.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.crystalsText = this.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
+        this.depthText = this.add.text(16, 128, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
 
-        // Sword placeholder (will be used for swing)
-        this.sword = this.add.rectangle(0, 0, 40, 10, 0xcccccc).setOrigin(0, 0.5).setAlpha(0);
+        // Sword placeholder
+        this.sword = this.add.rectangle(0, 0, 40, 10, 0xcccccc).setOrigin(0, 0.5).setAlpha(0).setDepth(10);
         this.physics.add.existing(this.sword);
         this.sword.body.setAllowGravity(false);
         this.sword.body.setImmovable(true);
@@ -77,7 +77,6 @@ export class Game extends Phaser.Scene {
         this.scubaTanks = this.physics.add.group();
         this.pirates = this.physics.add.group();
         this.mermaids = this.physics.add.group();
-        this.bullets = this.physics.add.group();
         this.crystalsGroup = this.physics.add.group();
 
         // Mobile Controls
@@ -97,19 +96,9 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.mermaids, this.collectMermaid, null, this);
         this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
         this.physics.add.collider(this.player, this.pirates, this.hitByEnemy, null, this);
-        this.physics.add.overlap(this.bullets, this.pirates, this.killEnemy, null, this);
 
         // Timer for air depletion
-        this.time.addEvent({
-            delay: 1000,
-            callback: this.depleteAir,
-            callbackScope: this,
-            loop: true
-        });
-
-        // Ensure everything is in front of BG but behind UI
-        this.add.rectangle(400, 0, 800, 300, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
-        this.add.rectangle(400, 300, 800, 2700, 0x004488).setOrigin(0.5, 0).setDepth(-1);
+        this.time.addEvent({ delay: 1000, callback: this.depleteAir, callbackScope: this, loop: true });
     }
 
     update() {
@@ -390,24 +379,39 @@ export class Game extends Phaser.Scene {
 
     setupMobileControls() {
         this.mobileInputs = { left: false, right: false, up: false, down: false, fire: false };
+        const { width, height } = this.scale;
 
-        const bottomY = this.cameras.main.height - 80;
+        // Grouped Layout
+        const btnSize = 65;
+        const padding = 20;
 
         const createBtn = (x, y, label, callbackDown, callbackUp) => {
-            const btn = this.add.rectangle(x, y, 70, 70, 0xffffff, 0.2)
+            const btn = this.add.rectangle(x, y, btnSize, btnSize, 0xffffff, 0.2)
                 .setScrollFactor(0)
                 .setInteractive()
                 .on('pointerdown', callbackDown)
                 .on('pointerup', callbackUp)
                 .on('pointerout', callbackUp);
-            this.add.text(x, y, label, { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+            this.add.text(x, y, label, { fontSize: '28px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
             return btn;
         };
 
-        createBtn(60, bottomY, '←', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
-        createBtn(140, bottomY, '→', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
-        createBtn(this.cameras.main.width / 2 - 40, bottomY, '↑', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
-        createBtn(this.cameras.main.width / 2 + 40, bottomY, '↓', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
-        createBtn(this.cameras.main.width - 60, bottomY, 'FIRE', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
+        // Left Group (D-pad style)
+        const leftX = padding + btnSize + 10;
+        const bottomY = height - padding - btnSize / 2;
+
+        createBtn(leftX, bottomY - btnSize - 5, '↑', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
+        createBtn(leftX, bottomY + 5, '↓', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
+        createBtn(leftX - btnSize - 5, bottomY, '←', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
+        createBtn(leftX + btnSize + 5, bottomY, '→', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
+
+        // Right Group (Action)
+        const rightX = width - padding - btnSize;
+        createBtn(rightX, bottomY, 'FIRE', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
+
+        // Help adjustment: if screen is too narrow, push move buttons closer
+        if (width < 400) {
+            // Adjust positions if needed
+        }
     }
 }
