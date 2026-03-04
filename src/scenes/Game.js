@@ -213,6 +213,14 @@ export class Game extends Phaser.Scene {
         this.scoreText.setText(`Score: ${this.score}`);
         this.moneyText.setText(`Money: $${this.money}`);
         this.crystalsText.setText(`Crystals: ${this.crystals}`);
+
+        // Check for sword hits while swinging
+        if (this.isSwinging) {
+            this.physics.overlap(this.sword, this.pirates, (s, pirate) => {
+                pirate.destroy();
+                this.score += 200;
+            }, null, this);
+        }
     }
 
     shoot() {
@@ -229,7 +237,7 @@ export class Game extends Phaser.Scene {
         this.sword.setAngle(this.player.flipX ? 180 : 0);
 
         // Movement with player
-        const swingTween = this.tweens.add({
+        this.tweens.add({
             targets: this.sword,
             angle: this.player.flipX ? 270 : 90,
             duration: 150,
@@ -242,12 +250,6 @@ export class Game extends Phaser.Scene {
                 this.sword.setAlpha(0);
                 this.isSwinging = false;
             }
-        });
-
-        // Check for hits
-        this.physics.overlap(this.sword, this.pirates, (s, pirate) => {
-            pirate.destroy();
-            this.score += 200;
         });
     }
 
