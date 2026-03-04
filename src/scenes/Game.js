@@ -40,6 +40,9 @@ export class Game extends Phaser.Scene {
         this.worldManager = new WorldManager(this);
         this.uiManager = new UIManager(this);
 
+        // Sound Manager (placeholder for basic SFX)
+        this.setupSounds();
+
         this.uiManager.create();
         this.worldManager.generateWorldItems();
         this.worldManager.setupPeriodicSpawning();
