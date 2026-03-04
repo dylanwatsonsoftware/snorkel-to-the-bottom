@@ -50,7 +50,7 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.scubaTanks, this.collectScuba, null, this);
         this.physics.add.overlap(this.player, this.mermaids, this.collectMermaid, null, this);
         this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
-        this.physics.add.collider(this.player, this.pirates, (p, e) => this.player.takeDamage(), null, this);
+        this.physics.add.overlap(this.player, this.pirates, (p, e) => this.player.takeDamage(), null, this);
         this.physics.add.collider(this.player, this.boat, null, (p, b) => {
             // Only solid if player is falling from above
             return p.y < b.y - 40 && p.body.velocity.y >= 0;
