@@ -25,6 +25,8 @@ export class UIManager {
             .setOrigin(1, 0)
             .setDepth(100);
 
+        // Support multi-touch
+        this.scene.input.addPointer(2);
         this.setupMobileControls();
     }
 
