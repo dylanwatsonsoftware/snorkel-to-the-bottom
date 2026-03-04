@@ -433,9 +433,22 @@ export class Game extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(101);
 
-        this.joystick.base.on('pointerdown', (pointer) => this.handleJoystickMove(pointer));
-        this.joystick.base.on('pointermove', (pointer) => this.handleJoystickMove(pointer));
-        this.input.on('pointerup', () => this.resetJoystick());
+        this.joystick.base.on('pointerdown', (pointer) => {
+            this.joystick.pointer = pointer;
+            this.handleJoystickMove(pointer);
+        });
+
+        this.input.on('pointermove', (pointer) => {
+            if (this.joystick.pointer && this.joystick.pointer.id === pointer.id) {
+                this.handleJoystickMove(pointer);
+            }
+        });
+
+        this.input.on('pointerup', (pointer) => {
+            if (this.joystick.pointer && this.joystick.pointer.id === pointer.id) {
+                this.resetJoystick();
+            }
+        });
 
         // Fire Button
         const btnSize = 80;
