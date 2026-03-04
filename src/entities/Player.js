@@ -20,10 +20,10 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.sword = this.scene.add.container(0, 0).setAlpha(0).setDepth(10);
 
         // Massive blade for huge reach
-        const blade = this.scene.add.rectangle(10, 0, 85, 8, 0xeeeeee).setOrigin(0, 0.5);
-        const hilt = this.scene.add.rectangle(8, 0, 4, 18, 0x8b4513).setOrigin(0.5, 0.5);
-        const guard = this.scene.add.circle(5, 0, 8, 0xffd700).setAlpha(0.8);
-        const handle = this.scene.add.rectangle(0, 0, 12, 6, 0x333333).setOrigin(0.5, 0.5);
+        const blade = this.scene.make.rectangle({ width: 85, height: 8, fillColor: 0xeeeeee }).setOrigin(0, 0.5).setX(10);
+        const hilt = this.scene.make.rectangle({ width: 4, height: 18, fillColor: 0x8b4513 }).setOrigin(0.5, 0.5).setX(8);
+        const guard = this.scene.make.graphics().fillStyle(0xffd700, 0.8).fillCircle(5, 0, 8);
+        const handle = this.scene.make.rectangle({ width: 12, height: 6, fillColor: 0x333333 }).setOrigin(0.5, 0.5);
 
         this.sword.add([blade, guard, hilt, handle]);
 
