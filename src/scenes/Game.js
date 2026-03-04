@@ -79,14 +79,6 @@ export class Game extends Phaser.Scene {
 
         // Mobile Controls
         this.setupMobileControls();
-        this.crystalsGroup = this.physics.add.group();
-
-        // Mobile Controls
-        this.setupMobileControls();
-        this.crystalsGroup = this.physics.add.group();
-
-        // Mobile Controls
-        this.setupMobileControls();
 
         // Spawn items
         this.time.addEvent({ delay: 3000, callback: this.spawnTreasure, callbackScope: this, loop: true });
@@ -117,7 +109,6 @@ export class Game extends Phaser.Scene {
         if (this.isGameOver) return;
 
         const speed = 200;
-        this.player.body.setVelocity(0);
 
         // Difficulty increases over time
         this.difficulty += 0.0001;
@@ -132,15 +123,57 @@ export class Game extends Phaser.Scene {
         if (this.cursors.up.isDown || this.mobileInputs?.up) moveY = -1;
         else if (this.cursors.down.isDown || this.mobileInputs?.down) moveY = 1;
 
-        if (moveX !== 0) {
-            this.player.body.setVelocityX(moveX * speed);
-            if (!this.isDiving) this.boat.body.setVelocityX(moveX * speed);
+        // Set Velocities
+        this.player.body.setVelocity(moveX * speed, moveY * speed);
+        if (!this.isDiving) {
+            this.boat.body.setVelocityX(moveX * speed);
         } else {
-            if (!this.isDiving) this.boat.body.setVelocityX(0);
+            this.boat.body.setVelocityX(0);
         }
 
-        if (moveY !== 0) {
-            this.player.body.setVelocityY(moveY * speed);
+        // Dive Animation and Transition Logic
+        const wasDiving = this.isDiving;
+        this.isDiving = this.player.y > 300;
+
+        if (this.isDiving && !wasDiving) {
+            // Just started diving
+            this.tweens.add({
+                targets: this.player,
+                angle: 180,
+                duration: 200,
+                ease: 'Power1'
+            });
+        } else if (!this.isDiving && wasDiving) {
+            // Just surfaced
+            this.tweens.add({
+                targets: this.player,
+                angle: 0,
+                duration: 200,
+                ease: 'Power1'
+            });
+        }
+
+        // Swimming Wobble and Angle
+        if (this.isDiving) {
+            // Rotate based on movement direction
+            if (moveY < 0) this.player.setAngle(225); // Up and slightly rotated
+            else if (moveY > 1) this.player.setAngle(135); // Down
+            else if (moveX < 0) this.player.setAngle(180);
+            else if (moveX > 0) this.player.setAngle(0);
+            else this.player.setAngle(180); // Default diving angle (facing down/side)
+
+            // Wobble
+            this.player.setAngle(this.player.angle + Math.sin(this.time.now / 100) * 5);
+        } else {
+            this.player.setAngle(0);
+        }
+
+        // Boat Collider Logic (allow re-boarding)
+        // Only collide if player is above the boat deck and not swimming up
+        if (this.player.y < 250 && moveY >= 0) {
+            this.boatCollider.active = true;
+        } else {
+            this.boatCollider.active = false;
         }
 
         // Shooting
@@ -149,13 +182,6 @@ export class Game extends Phaser.Scene {
             this.shoot();
         }
         this.lastFire = this.mobileInputs?.fire;
-
-        // Check if player is diving
-        if (this.player.y > 300) {
-            this.isDiving = true;
-        } else {
-            this.isDiving = false;
-        }
 
         // Update UI
         this.airText.setText(`Air: ${Math.floor(this.air)}%`);
@@ -248,14 +274,14 @@ export class Game extends Phaser.Scene {
                 .on('pointerdown', callbackDown)
                 .on('pointerup', callbackUp)
                 .on('pointerout', callbackUp);
-            this.add.text(x, y, label, { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+            this.add.text(x, y, label, { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
             return btn;
         };
 
-        createBtn(60, bottomY, 'L', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
-        createBtn(140, bottomY, 'R', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
-        createBtn(this.cameras.main.width / 2 - 40, bottomY, 'U', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
-        createBtn(this.cameras.main.width / 2 + 40, bottomY, 'D', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
-        createBtn(this.cameras.main.width - 60, bottomY, 'F', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
+        createBtn(60, bottomY, '←', () => this.mobileInputs.left = true, () => this.mobileInputs.left = false);
+        createBtn(140, bottomY, '→', () => this.mobileInputs.right = true, () => this.mobileInputs.right = false);
+        createBtn(this.cameras.main.width / 2 - 40, bottomY, '↑', () => this.mobileInputs.up = true, () => this.mobileInputs.up = false);
+        createBtn(this.cameras.main.width / 2 + 40, bottomY, '↓', () => this.mobileInputs.down = true, () => this.mobileInputs.down = false);
+        createBtn(this.cameras.main.width - 60, bottomY, 'FIRE', () => this.mobileInputs.fire = true, () => this.mobileInputs.fire = false);
     }
 }
