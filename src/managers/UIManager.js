@@ -4,10 +4,9 @@ export class UIManager {
     constructor(scene) {
         this.scene = scene;
         this.airText = null;
-        this.scoreText = null;
-        this.moneyText = null;
         this.crystalsText = null;
         this.depthText = null;
+        this.healthText = null;
         this.joystick = { base: null, thumb: null, active: false, x: 0, y: 0, distance: 0, angle: 0, pointer: null };
         this.mobileInputs = { fire: false };
     }
@@ -19,15 +18,19 @@ export class UIManager {
         this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
         this.crystalsText = this.scene.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
         this.depthText = this.scene.add.text(16, 128, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
+        this.healthText = this.scene.add.text(16, 156, 'Health: ❤️❤️❤️', uiStyle).setScrollFactor(0).setDepth(100);
 
         this.setupMobileControls();
     }
 
-    update(air, score, money, crystals, playerY) {
+    update(air, score, money, crystals, playerY, health) {
         this.airText.setText(`Air: ${Math.floor(air)}%`);
         this.scoreText.setText(`Score: ${score}`);
         this.moneyText.setText(`Money: $${money}`);
         this.crystalsText.setText(`Crystals: ${crystals}`);
+
+        const hearts = '❤️'.repeat(Math.max(0, health));
+        this.healthText.setText(`Health: ${hearts}`);
 
         const currentDepth = Math.max(0, Math.floor((playerY - 300) / 10));
         this.depthText.setText(`Depth: ${currentDepth}m`);

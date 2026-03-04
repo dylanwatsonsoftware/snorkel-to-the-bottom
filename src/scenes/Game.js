@@ -50,7 +50,7 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.scubaTanks, this.collectScuba, null, this);
         this.physics.add.overlap(this.player, this.mermaids, this.collectMermaid, null, this);
         this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
-        this.physics.add.collider(this.player, this.pirates, (p, e) => this.gameOver(), null, this);
+        this.physics.add.collider(this.player, this.pirates, (p, e) => this.player.takeDamage(), null, this);
         this.physics.add.collider(this.player, this.boat, null, (p, b) => {
             // Only solid if player is falling from above
             return p.y < b.y - 40 && p.body.velocity.y >= 0;
@@ -105,7 +105,7 @@ export class Game extends Phaser.Scene {
             }
         });
 
-        this.uiManager.update(this.air, this.score, this.money, this.crystals, this.player.y);
+        this.uiManager.update(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
     }
 
     depleteAir() {
@@ -157,7 +157,8 @@ export class Game extends Phaser.Scene {
         const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
         const safeY = (Math.abs(y - this.player.y) < 100) ? y + 200 : y;
         const p = this.pirates.create(x, Math.min(2900, safeY), 'pirate').setScale(0.4);
-        p.body.setSize(p.width * 0.6, p.height * 0.5).setOffset(p.width * 0.2, p.height * 0.25);
+        // Shrink hitbox vertically by even more (to 30% of height)
+        p.body.setSize(p.width * 0.6, p.height * 0.3).setOffset(p.width * 0.2, p.height * 0.35);
         p.body.setVelocityX(-150 * this.difficulty);
     }
 
