@@ -16,7 +16,8 @@ export class Game extends Phaser.Scene {
         this.scoreText = null;
         this.moneyText = null;
         this.crystalsText = null;
-        this.mobileButtons = {};
+        this.mobileInputs = { left: false, right: false, up: false, down: false, fire: false };
+        this.lastFire = false;
         this.treasures = null;
         this.airBubbles = null;
         this.scubaTanks = null;
@@ -54,7 +55,7 @@ export class Game extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, 800, 3000);
 
         // Boat and Player Interaction
-        this.physics.add.collider(this.player, this.boat);
+        this.boatCollider = this.physics.add.collider(this.player, this.boat);
 
         // Controls
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -74,6 +75,10 @@ export class Game extends Phaser.Scene {
         this.pirates = this.physics.add.group();
         this.mermaids = this.physics.add.group();
         this.bullets = this.physics.add.group();
+        this.crystalsGroup = this.physics.add.group();
+
+        // Mobile Controls
+        this.setupMobileControls();
         this.crystalsGroup = this.physics.add.group();
 
         // Mobile Controls
