@@ -254,6 +254,9 @@ export class Game extends Phaser.Scene {
 
         const pirate = this.pirates.create(x, Math.min(2900, safeY), 'pirate');
         pirate.setScale(0.4);
+        // Shrink hitbox for fair play
+        pirate.body.setSize(pirate.width * 0.6, pirate.height * 0.5);
+        pirate.body.setOffset(pirate.width * 0.2, pirate.height * 0.25);
         pirate.body.setVelocityX(-150 * this.difficulty);
     }
 
@@ -298,7 +301,10 @@ export class Game extends Phaser.Scene {
     spawnAirBubble() {
         const pos = this.getSafeSpawnPos();
         if (!pos) return;
-        const bubble = this.airBubbles.create(pos.x, pos.y, null);
+
+        // Use a simple circle as the physical object instead of a null-texture sprite
+        const bubble = this.physics.add.sprite(pos.x, pos.y, null);
+        bubble.setVisible(false); // Hide the null sprite
 
         // Multi-layered visual for a better bubble look
         const container = this.add.container(pos.x, pos.y);
