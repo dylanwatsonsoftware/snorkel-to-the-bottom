@@ -302,9 +302,10 @@ export class Game extends Phaser.Scene {
         const pos = this.getSafeSpawnPos();
         if (!pos) return;
 
-        // Use a simple circle as the physical object instead of a null-texture sprite
-        const bubble = this.physics.add.sprite(pos.x, pos.y, null);
-        bubble.setVisible(false); // Hide the null sprite
+        // Use an invisible sprite for physics overlap, added to the airBubbles group
+        const bubble = this.airBubbles.create(pos.x, pos.y, null);
+        bubble.setVisible(false);
+        bubble.setAlpha(0);
 
         // Multi-layered visual for a better bubble look
         const container = this.add.container(pos.x, pos.y);
