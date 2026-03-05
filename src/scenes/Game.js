@@ -350,12 +350,8 @@ export class Game extends Phaser.Scene {
         this.isGameOver = true;
         this.physics.pause();
         this.player.setTint(0xff0000);
-        const cam = this.cameras.main;
-        const x = cam.worldView.x + cam.width / 2;
-        const y = cam.worldView.y + cam.height / 2;
-        this.add.text(x, y - 50, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
-        this.add.text(x, y + 50, 'RESTART', { fontSize: '32px', fill: '#fff', backgroundColor: '#333', padding: { x: 20, y: 10 } })
-            .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart());
-        this.input.keyboard.once('keydown-SPACE', () => this.scene.restart());
+
+        const depth = Math.max(0, Math.floor((this.player.y - 300) / 10));
+        this.scene.launch('GameOver', { score: this.score, depth });
     }
 }
