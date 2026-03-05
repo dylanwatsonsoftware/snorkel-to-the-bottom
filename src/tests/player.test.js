@@ -136,13 +136,18 @@ describe('Player – health & damage', () => {
         player.body = scene._body;
     });
 
-    it('starts with 3 health', () => {
-        expect(player.health).toBe(3);
+    it('starts with 6 health (3 full hearts)', () => {
+        expect(player.health).toBe(6);
     });
 
-    it('takeDamage reduces health by 1', () => {
+    it('takeDamage reduces health by 2 (one full heart) by default', () => {
         player.takeDamage();
-        expect(player.health).toBe(2);
+        expect(player.health).toBe(4);
+    });
+
+    it('takeDamage(1) reduces health by 1 (half heart, e.g. swordfish)', () => {
+        player.takeDamage(1);
+        expect(player.health).toBe(5);
     });
 
     it('takeDamage sets and then clears invincibility (tween mock is synchronous)', () => {
@@ -151,27 +156,33 @@ describe('Player – health & damage', () => {
         // This still verifies that: (a) health decremented and (b) the player is not
         // stuck in a permanent invincible state.
         player.takeDamage();
-        expect(player.health).toBe(2);
+        expect(player.health).toBe(4);
         expect(player.isInvincible).toBe(false);
     });
 
     it('does not take damage when invincible', () => {
-        player.health = 2;
+        player.health = 4;
         player.isInvincible = true;
         player.takeDamage();
-        expect(player.health).toBe(2);
+        expect(player.health).toBe(4);
     });
 
     it('calls scene.gameOver when health reaches 0', () => {
-        player.health = 1;
+        player.health = 2;
         player.takeDamage();
         expect(scene.gameOver).toHaveBeenCalledOnce();
     });
 
     it('does not call gameOver while health > 0', () => {
-        player.health = 2;
+        player.health = 4;
         player.takeDamage();
         expect(scene.gameOver).not.toHaveBeenCalled();
+    });
+
+    it('health does not go below 0', () => {
+        player.health = 1;
+        player.takeDamage();
+        expect(player.health).toBe(0);
     });
 });
 

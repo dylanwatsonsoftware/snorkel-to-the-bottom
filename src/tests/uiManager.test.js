@@ -34,26 +34,56 @@ describe('UIManager – depth calculation', () => {
     });
 });
 
-describe('UIManager – health hearts display', () => {
-    // Logic from UIManager.update:
-    //   const hearts = '❤️'.repeat(Math.max(0, health));
+describe('UIManager – half-heart health display', () => {
+    // Logic from UIManager.updateHearts:
+    //   MAX_HEALTH = 6 → 3 display hearts (each represents 2 half-hearts)
+    //   For heart i (0-based):
+    //     threshold = (i + 1) * 2
+    //     health >= threshold       → 'full'
+    //     health >= threshold - 1   → 'half'
+    //     otherwise                 → 'empty'
 
-    const heartsFor = (health) => '❤️'.repeat(Math.max(0, health));
+    const getHeartStates = (health, maxHearts = 3) => {
+        const states = [];
+        for (let i = 0; i < maxHearts; i++) {
+            const threshold = (i + 1) * 2;
+            if (health >= threshold) states.push('full');
+            else if (health >= threshold - 1) states.push('half');
+            else states.push('empty');
+        }
+        return states;
+    };
 
-    it('shows 3 hearts at full health', () => {
-        expect(heartsFor(3)).toBe('❤️❤️❤️');
+    it('shows 3 full hearts at health 6 (full health)', () => {
+        expect(getHeartStates(6)).toEqual(['full', 'full', 'full']);
     });
 
-    it('shows 0 hearts when health is 0', () => {
-        expect(heartsFor(0)).toBe('');
+    it('shows 2 full + 1 half at health 5 (swordfish hit)', () => {
+        expect(getHeartStates(5)).toEqual(['full', 'full', 'half']);
     });
 
-    it('shows 0 hearts when health is negative', () => {
-        expect(heartsFor(-1)).toBe('');
+    it('shows 2 full + 1 empty at health 4 (one full heart lost)', () => {
+        expect(getHeartStates(4)).toEqual(['full', 'full', 'empty']);
     });
 
-    it('shows 1 heart at health 1', () => {
-        expect(heartsFor(1)).toBe('❤️');
+    it('shows 1 full + 1 half + 1 empty at health 3', () => {
+        expect(getHeartStates(3)).toEqual(['full', 'half', 'empty']);
+    });
+
+    it('shows 1 full + 2 empty at health 2', () => {
+        expect(getHeartStates(2)).toEqual(['full', 'empty', 'empty']);
+    });
+
+    it('shows 1 half + 2 empty at health 1 (critical)', () => {
+        expect(getHeartStates(1)).toEqual(['half', 'empty', 'empty']);
+    });
+
+    it('shows 3 empty hearts at health 0 (dead)', () => {
+        expect(getHeartStates(0)).toEqual(['empty', 'empty', 'empty']);
+    });
+
+    it('shows 3 empty hearts at negative health', () => {
+        expect(getHeartStates(-1)).toEqual(['empty', 'empty', 'empty']);
     });
 });
 
@@ -137,5 +167,111 @@ describe('UIManager – handleJoystickMove math', () => {
     it('angle is π/2 when pointing straight down', () => {
         const { angle } = calcJoystick(100, 100, 100, 200);
         expect(angle).toBeCloseTo(Math.PI / 2, 5);
+    });
+});
+
+describe('UIManager – mobile controls separation', () => {
+    // Mobile controls must live in a separate container (mobileContainer)
+    // from the HUD (uiContainer) so that zoom compensation on uiContainer
+    // does not distort pointer coordinate space for touch input.
+
+    // Simulate what happens when uiContainer is zoom-compensated:
+    //   containerScale = 1 / zoom
+    //   containerX = centerX * (1 - 1 / zoom)
+    // A joystick base at local (100, 400) would appear on screen at:
+    //   screenX = containerX + base.x * containerScale
+
+    const simulateContainerTransform = (zoom, screenWidth) => {
+        const centerX = screenWidth / 2;
+        const containerScale = 1 / zoom;
+        const containerX = centerX * (1 - 1 / zoom);
+        return { containerScale, containerX };
+    };
+
+    it('at zoom 0.7 (surface), container transform shifts positions significantly', () => {
+        const { containerScale, containerX } = simulateContainerTransform(0.7, 800);
+        // A base at local x=100 appears at screen x:
+        const screenX = containerX + 100 * containerScale;
+        // containerX = 400 * (1 - 1/0.7) = 400 * (-0.4286) = -171.4
+        // screenX = -171.4 + 100 * 1.4286 = -171.4 + 142.86 = -28.6
+        // This proves the point: a joystick at local x=100 would appear off-screen!
+        expect(screenX).toBeLessThan(0);
+    });
+
+    it('at zoom 1.0 (diving), container transform is identity', () => {
+        const { containerScale, containerX } = simulateContainerTransform(1.0, 800);
+        expect(containerScale).toBe(1);
+        expect(containerX).toBeCloseTo(0, 5);
+        // At zoom 1.0, there's no distortion - screen coords match local coords
+        const screenX = containerX + 100 * containerScale;
+        expect(screenX).toBeCloseTo(100, 5);
+    });
+
+    it('pointer vs base coordinate mismatch breaks joystick in zoomed container', () => {
+        // If joystick base is at local x=100 inside a zoom-compensated container,
+        // and user touches at screen x=100, the delta used for joystick would be:
+        //   dx = pointer.x(100) - base.x(100) = 0  (WRONG - base isn't at screen 100)
+        // With separate container (no zoom), base IS at screen 100, so dx=0 is correct.
+        const zoom = 0.7;
+        const { containerScale, containerX } = simulateContainerTransform(zoom, 800);
+
+        const baseLocalX = 100;
+        const baseScreenX = containerX + baseLocalX * containerScale;
+        const pointerX = baseScreenX; // user touches exactly where base appears
+
+        // Inside zoom container: dx = pointerX - baseLocalX (WRONG coordinate spaces)
+        const wrongDx = pointerX - baseLocalX;
+        // Inside separate container: dx = pointerX - baseLocalX (same coords since no transform)
+        // The mismatch shows the bug
+        expect(wrongDx).not.toBeCloseTo(0, 1); // broken: significant offset
+    });
+});
+
+describe('UIManager – air bar behavior', () => {
+    // Logic from UIManager.update:
+    //   airPct = clamp(air, 0, 100)
+    //   fill width = airBarWidth * (airPct / 100)
+    //   color = airPct > 25 ? blue : red
+
+    const airBarWidth = 152;
+
+    const calcAirBar = (air) => {
+        const airPct = Math.max(0, Math.min(100, air));
+        return {
+            fillWidth: airBarWidth * (airPct / 100),
+            isWarning: airPct <= 25,
+        };
+    };
+
+    it('full bar at 100 air', () => {
+        const { fillWidth, isWarning } = calcAirBar(100);
+        expect(fillWidth).toBe(airBarWidth);
+        expect(isWarning).toBe(false);
+    });
+
+    it('empty bar at 0 air', () => {
+        const { fillWidth, isWarning } = calcAirBar(0);
+        expect(fillWidth).toBe(0);
+        expect(isWarning).toBe(true);
+    });
+
+    it('warning color at 25% air', () => {
+        const { isWarning } = calcAirBar(25);
+        expect(isWarning).toBe(true);
+    });
+
+    it('normal color at 26% air', () => {
+        const { isWarning } = calcAirBar(26);
+        expect(isWarning).toBe(false);
+    });
+
+    it('clamps above 100', () => {
+        const { fillWidth } = calcAirBar(150);
+        expect(fillWidth).toBe(airBarWidth);
+    });
+
+    it('clamps below 0', () => {
+        const { fillWidth } = calcAirBar(-10);
+        expect(fillWidth).toBe(0);
     });
 });

@@ -11,7 +11,7 @@ export class Player extends Phaser.GameObjects.Sprite {
 
         this.scene = scene;
         this.isSwinging = false;
-        this.health = 3;
+        this.health = 6;
         this.isInvincible = false;
         this.isDivingInitiated = false;
         this.setupSword();
@@ -119,10 +119,10 @@ export class Player extends Phaser.GameObjects.Sprite {
         if (this.scene.soundManager) this.scene.soundManager.play('swing');
     }
 
-    takeDamage() {
+    takeDamage(amount = 2) {
         if (this.isInvincible || this.health <= 0) return;
 
-        this.health--;
+        this.health = Math.max(0, this.health - amount);
         this.isInvincible = true;
 
         if (this.scene.soundManager) this.scene.soundManager.play('hurt');

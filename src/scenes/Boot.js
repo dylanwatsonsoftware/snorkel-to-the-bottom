@@ -155,5 +155,51 @@ export class Boot extends Phaser.Scene {
         uc.fillCircle(12, 12, 4);
         uc.generateTexture('upgrade', 24, 24);
         uc.destroy();
+
+        // Heart textures for health HUD
+        const hs = 20;
+
+        // Helper: draw heart outline (dark border)
+        const heartOutline = (g, color, alpha) => {
+            g.fillStyle(color, alpha);
+            g.fillCircle(hs * 0.3, hs * 0.3, hs * 0.32);
+            g.fillCircle(hs * 0.7, hs * 0.3, hs * 0.32);
+            g.fillTriangle(hs * 0.02, hs * 0.38, hs * 0.98, hs * 0.38, hs * 0.5, hs * 0.98);
+        };
+        // Helper: draw heart fill
+        const heartFill = (g, color) => {
+            g.fillStyle(color, 1);
+            g.fillCircle(hs * 0.3, hs * 0.3, hs * 0.27);
+            g.fillCircle(hs * 0.7, hs * 0.3, hs * 0.27);
+            g.fillTriangle(hs * 0.05, hs * 0.4, hs * 0.95, hs * 0.4, hs * 0.5, hs * 0.94);
+        };
+
+        // Full heart (red)
+        const hf = this.add.graphics();
+        heartOutline(hf, 0x000000, 0.6);
+        heartFill(hf, 0xff2244);
+        hf.generateTexture('heart-full', hs, hs);
+        hf.destroy();
+
+        // Half heart (left red, right dark)
+        const hh = this.add.graphics();
+        heartOutline(hh, 0x000000, 0.6);
+        // Left half red
+        hh.fillStyle(0xff2244, 1);
+        hh.fillCircle(hs * 0.3, hs * 0.3, hs * 0.27);
+        hh.fillTriangle(hs * 0.05, hs * 0.4, hs * 0.5, hs * 0.4, hs * 0.5, hs * 0.94);
+        // Right half dark
+        hh.fillStyle(0x333344, 1);
+        hh.fillCircle(hs * 0.7, hs * 0.3, hs * 0.27);
+        hh.fillTriangle(hs * 0.5, hs * 0.4, hs * 0.95, hs * 0.4, hs * 0.5, hs * 0.94);
+        hh.generateTexture('heart-half', hs, hs);
+        hh.destroy();
+
+        // Empty heart (dark)
+        const he = this.add.graphics();
+        heartOutline(he, 0x000000, 0.6);
+        heartFill(he, 0x333344);
+        he.generateTexture('heart-empty', hs, hs);
+        he.destroy();
     }
 }

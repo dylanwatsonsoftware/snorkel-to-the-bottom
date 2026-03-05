@@ -117,7 +117,7 @@ export class Game extends Phaser.Scene {
             if (!e.getData('dying')) this.player.takeDamage();
         }, null, this);
         this.physics.add.overlap(this.player, wm.swordfishGroup, (p, e) => {
-            if (!e.getData('dying')) this.player.takeDamage();
+            if (!e.getData('dying')) this.player.takeDamage(1);
         }, null, this);
 
         // Boat collider
