@@ -198,7 +198,11 @@ export class Game extends Phaser.Scene {
 
     spawnTreasure() {
         const pos = this.getSafeSpawnPos();
-        if (pos) this.treasures.create(pos.x, pos.y, 'treasure').setScale(0.25);
+        if (pos) {
+            const t = this.treasures.create(pos.x, pos.y, 'treasure').setScale(0.25);
+            t.body.setSize(t.width * 0.4, t.height * 0.4);
+            t.body.setOffset(t.width * 0.3, t.height * 0.3);
+        }
     }
 
     spawnCrystal(x, y) {
@@ -208,6 +212,8 @@ export class Game extends Phaser.Scene {
             x = pos.x; y = pos.y;
         }
         const c = this.crystalsGroup.create(x, y, 'crystal').setScale(0.25);
+        c.body.setSize(c.width * 0.4, c.height * 0.4);
+        c.body.setOffset(c.width * 0.3, c.height * 0.3);
         c.body.setVelocityX(Phaser.Math.Between(-20, 20));
         c.body.setAllowGravity(false);
     }
@@ -216,6 +222,8 @@ export class Game extends Phaser.Scene {
         const pos = this.getSafeSpawnPos();
         if (pos) {
             const t = this.scubaTanks.create(pos.x, pos.y, 'scuba').setScale(0.3);
+            t.body.setSize(t.width * 0.4, t.height * 0.4);
+            t.body.setOffset(t.width * 0.3, t.height * 0.3);
             t.body.setVelocityX(Phaser.Math.Between(-10, 10));
             t.body.setAllowGravity(false);
         }
@@ -248,6 +256,8 @@ export class Game extends Phaser.Scene {
         const x = cam.worldView.right + 200;
         const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
         const m = this.mermaids.create(x, y, 'mermaid').setScale(0.3);
+        m.body.setSize(m.width * 0.5, m.height * 0.5);
+        m.body.setOffset(m.width * 0.25, m.height * 0.25);
         m.body.setVelocityX(-100);
         if (Phaser.Math.Between(0, 1) === 1) this.spawnCrystal(x, y);
     }
