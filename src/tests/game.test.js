@@ -73,7 +73,7 @@ function makeGame(overrides = {}) {
         },
 
         calcLightingAlpha(playerY) {
-            return Math.max(0, Math.min(0.8, (playerY - WORLD.WATERLINE_Y) / (WORLD.DEPTH - WORLD.WATERLINE_Y)));
+            return Math.max(0, Math.min(0.6, (playerY - WORLD.WATERLINE_Y) / (WORLD.DEPTH - WORLD.WATERLINE_Y)));
         },
     };
 }
@@ -335,12 +335,12 @@ describe('Game – updateLighting alpha', () => {
         expect(game.calcLightingAlpha(WORLD.WATERLINE_Y - 1)).toBe(0);
     });
 
-    it('reaches max alpha 0.8 at full depth', () => {
-        expect(game.calcLightingAlpha(WORLD.DEPTH)).toBeCloseTo(0.8, 5);
+    it('reaches max alpha 0.6 at full depth', () => {
+        expect(game.calcLightingAlpha(WORLD.DEPTH)).toBeCloseTo(0.6, 5);
     });
 
-    it('never exceeds 0.8 even at extreme depth', () => {
-        expect(game.calcLightingAlpha(9999)).toBe(0.8);
+    it('never exceeds 0.6 even at extreme depth', () => {
+        expect(game.calcLightingAlpha(9999)).toBe(0.6);
     });
 
     it('is proportional between surface and max depth', () => {

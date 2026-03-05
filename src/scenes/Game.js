@@ -32,7 +32,24 @@ export class Game extends Phaser.Scene {
         // Background
         const bgWidth = Math.max(width * 3, 2400);
         this.add.rectangle(width / 2, 0, bgWidth, WORLD.WATERLINE_Y, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
-        this.add.rectangle(width / 2, WORLD.WATERLINE_Y, bgWidth, WORLD.DEPTH - WORLD.WATERLINE_Y, 0x004488).setOrigin(0.5, 0).setDepth(-1);
+
+        // Gradient underwater background
+        const waterHeight = WORLD.DEPTH - WORLD.WATERLINE_Y;
+        if (!this.textures.exists('waterGradient')) {
+            const canvas = this.textures.createCanvas('waterGradient', 1, waterHeight);
+            const ctx = canvas.getContext();
+            const gradient = ctx.createLinearGradient(0, 0, 0, waterHeight);
+            gradient.addColorStop(0, '#1a9fcc');
+            gradient.addColorStop(0.15, '#0077aa');
+            gradient.addColorStop(0.4, '#004488');
+            gradient.addColorStop(0.7, '#001a33');
+            gradient.addColorStop(1, '#000a14');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1, waterHeight);
+            canvas.refresh();
+        }
+        this.add.image(width / 2, WORLD.WATERLINE_Y, 'waterGradient')
+            .setOrigin(0.5, 0).setDisplaySize(bgWidth, waterHeight).setDepth(-1);
 
         // Entities
         this.boat = new Boat(this, width / 4, 305);
@@ -259,7 +276,7 @@ export class Game extends Phaser.Scene {
 
     updateLighting() {
         if (!this.lightingOverlay) return;
-        const targetAlpha = Math.max(0, Math.min(0.8, (this.player.y - WORLD.WATERLINE_Y) / (WORLD.DEPTH - WORLD.WATERLINE_Y)));
+        const targetAlpha = Math.max(0, Math.min(0.6, (this.player.y - WORLD.WATERLINE_Y) / (WORLD.DEPTH - WORLD.WATERLINE_Y)));
         this.lightingOverlay.alpha = Phaser.Math.Linear(this.lightingOverlay.alpha, targetAlpha, 0.05);
         if (this.flashlightMaskImage) {
             this.flashlightMaskImage.x = this.player.x;

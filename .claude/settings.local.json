@@ -4,7 +4,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm test:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(wc:*)",
+      "Bash(git status:*)",
+      "Bash(npx vitest run:*)"
     ]
   }
 }
