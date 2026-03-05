@@ -147,6 +147,7 @@ export class WorldManager {
         const velX = side === 0 ? -100 : 100;
         const m = new Mermaid(this.scene, x, y, velX);
         this.mermaids.add(m);
+        m.swim();
         if (Phaser.Math.Between(0, 1) === 1) this.spawnCrystal(x, y);
     }
 
