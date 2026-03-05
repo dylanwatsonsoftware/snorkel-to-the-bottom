@@ -40,9 +40,9 @@ export class HUD extends Phaser.Scene {
             resolution: dpr
         };
 
-        const col1 = pad;
-        const col2 = pad + 98;
-        const row1 = airY + 32;
+        const col1 = pad + 10;
+        const col2 = pad + 108;
+        const row1 = airY + 38;
         const row2 = row1 + 34;
 
         this.add.image(col1 + 8, row1 + 2, 'icon-star');
