@@ -14,29 +14,35 @@ export class UIManager {
     create() {
         const uiStyle = { fontSize: '20px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
 
+        // UI container - counter-scales camera zoom so HUD stays fixed size
+        this.uiContainer = this.scene.add.container(0, 0);
+        this.uiContainer.setScrollFactor(0);
+        this.uiContainer.setDepth(100);
+
         // Air bar
         this.airBarWidth = 150;
         const barHeight = 14;
         this.airBarBg = this.scene.add.rectangle(16, 20, this.airBarWidth, barHeight, 0x222244)
-            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+            .setOrigin(0, 0.5);
         this.airBarFill = this.scene.add.rectangle(16, 20, this.airBarWidth, barHeight, 0x2288dd)
-            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
-        // Bubble indicator at end of bar
-        this.airBubble = this.scene.add.circle(16 + this.airBarWidth, 20, 8, 0x66ccff, 0.9)
-            .setScrollFactor(0).setDepth(101);
-        this.airBubbleInner = this.scene.add.circle(16 + this.airBarWidth - 2, 18, 3, 0xffffff, 0.6)
-            .setScrollFactor(0).setDepth(101);
+            .setOrigin(0, 0.5);
+        this.airBubble = this.scene.add.circle(16 + this.airBarWidth, 20, 8, 0x66ccff, 0.9);
+        this.airBubbleInner = this.scene.add.circle(16 + this.airBarWidth - 2, 18, 3, 0xffffff, 0.6);
 
-        this.scoreText = this.scene.add.text(16, 44, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.crystalsText = this.scene.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
-        this.depthText = this.scene.add.text(16, 128, 'Depth: 0m', uiStyle).setScrollFactor(0).setDepth(100);
+        this.scoreText = this.scene.add.text(16, 44, 'Score: 0', uiStyle);
+        this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle);
+        this.crystalsText = this.scene.add.text(16, 100, 'Crystals: 0', uiStyle);
+        this.depthText = this.scene.add.text(16, 128, 'Depth: 0m', uiStyle);
 
         const { width } = this.scene.scale;
         this.healthText = this.scene.add.text(width - 16, 16, 'Health: ❤️❤️❤️', uiStyle)
-            .setScrollFactor(0)
-            .setOrigin(1, 0)
-            .setDepth(100);
+            .setOrigin(1, 0);
+
+        this.uiContainer.add([
+            this.airBarBg, this.airBarFill, this.airBubble, this.airBubbleInner,
+            this.scoreText, this.moneyText, this.crystalsText, this.depthText,
+            this.healthText
+        ]);
 
         // Support multi-touch
         this.scene.input.addPointer(2);
@@ -44,6 +50,10 @@ export class UIManager {
     }
 
     update(air, score, money, crystals, playerY, health) {
+        // Counter-scale UI container to negate camera zoom
+        const zoom = this.scene.cameras.main.zoom;
+        this.uiContainer.setScale(1 / zoom);
+
         // Update air bar
         const airPct = Math.max(0, Math.min(100, air));
         const fillW = this.airBarWidth * (airPct / 100);
@@ -81,13 +91,9 @@ export class UIManager {
         const jY = height - padding - baseRadius - 90;
 
         this.joystick.base = this.scene.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
-            .setScrollFactor(0)
-            .setDepth(100)
             .setInteractive();
 
-        this.joystick.thumb = this.scene.add.circle(jX, jY, thumbRadius, 0xffffff, 0.3)
-            .setScrollFactor(0)
-            .setDepth(101);
+        this.joystick.thumb = this.scene.add.circle(jX, jY, thumbRadius, 0xffffff, 0.3);
 
         this.joystick.base.on('pointerdown', (pointer) => {
             this.joystick.pointer = pointer;
@@ -110,18 +116,19 @@ export class UIManager {
         const fireX = width - padding - btnSize / 2;
         const fireY = height - padding - btnSize / 2 - 80;
 
-        this.scene.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
-            .setScrollFactor(0)
+        this.actionBtn = this.scene.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
             .setInteractive()
-            .setDepth(100)
             .on('pointerdown', () => this.mobileInputs.slash = true)
             .on('pointerup', () => this.mobileInputs.slash = false)
             .on('pointerout', () => this.mobileInputs.slash = false);
 
         this.actionBtnText = this.scene.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
-            .setOrigin(0.5)
-            .setScrollFactor(0)
-            .setDepth(101);
+            .setOrigin(0.5);
+
+        this.uiContainer.add([
+            this.joystick.base, this.joystick.thumb,
+            this.actionBtn, this.actionBtnText
+        ]);
     }
 
     handleJoystickMove(pointer) {
