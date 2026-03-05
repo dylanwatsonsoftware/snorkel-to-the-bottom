@@ -15,14 +15,17 @@ export class UIManager {
         const uiStyle = { fontSize: '20px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
 
         // Air bar
-        const barWidth = 150;
-        const barHeight = 16;
-        this.airBarBg = this.scene.add.rectangle(16, 20, barWidth, barHeight, 0x333333)
+        this.airBarWidth = 150;
+        const barHeight = 14;
+        this.airBarBg = this.scene.add.rectangle(16, 20, this.airBarWidth, barHeight, 0x222244)
             .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
-        this.airBarFill = this.scene.add.rectangle(16, 20, barWidth, barHeight, 0x00cc44)
+        this.airBarFill = this.scene.add.rectangle(16, 20, this.airBarWidth, barHeight, 0x2288dd)
             .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
-        this.airText = this.scene.add.text(16 + barWidth + 8, 20, '100%', { fontSize: '14px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2 })
-            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+        // Bubble indicator at end of bar
+        this.airBubble = this.scene.add.circle(16 + this.airBarWidth, 20, 8, 0x66ccff, 0.9)
+            .setScrollFactor(0).setDepth(101);
+        this.airBubbleInner = this.scene.add.circle(16 + this.airBarWidth - 2, 18, 3, 0xffffff, 0.6)
+            .setScrollFactor(0).setDepth(101);
 
         this.scoreText = this.scene.add.text(16, 44, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
         this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
@@ -43,12 +46,19 @@ export class UIManager {
     update(air, score, money, crystals, playerY, health) {
         // Update air bar
         const airPct = Math.max(0, Math.min(100, air));
-        const barWidth = 150;
-        this.airBarFill.width = barWidth * (airPct / 100);
-        if (airPct > 50) this.airBarFill.setFillStyle(0x00cc44);
-        else if (airPct > 25) this.airBarFill.setFillStyle(0xcccc00);
-        else this.airBarFill.setFillStyle(0xcc2200);
-        this.airText.setText(`${Math.floor(airPct)}%`);
+        const fillW = this.airBarWidth * (airPct / 100);
+        this.airBarFill.width = fillW;
+        if (airPct > 25) this.airBarFill.setFillStyle(0x2288dd);
+        else this.airBarFill.setFillStyle(0xcc3333);
+        // Move bubble to end of fill
+        const bubbleX = 16 + fillW;
+        this.airBubble.setPosition(bubbleX, 20);
+        this.airBubbleInner.setPosition(bubbleX - 2, 18);
+        if (airPct <= 25) {
+            this.airBubble.setFillStyle(0xff6666, 0.9);
+        } else {
+            this.airBubble.setFillStyle(0x66ccff, 0.9);
+        }
 
         this.scoreText.setText(`Score: ${score}`);
         this.moneyText.setText(`Money: $${money}`);
