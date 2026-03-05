@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Boat } from '../entities/Boat';
+import { Swordfish } from '../entities/Swordfish';
 import { WorldManager } from '../managers/WorldManager';
 import { UIManager } from '../managers/UIManager';
 
@@ -31,6 +32,7 @@ export class Game extends Phaser.Scene {
         this.pirates = this.physics.add.group();
         this.mermaids = this.physics.add.group();
         this.crystalsGroup = this.physics.add.group();
+        this.swordfishGroup = this.physics.add.group();
 
         // Entities
         this.boat = new Boat(this, width / 4, 305);
@@ -53,7 +55,12 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.scubaTanks, this.collectScuba, null, this);
         this.physics.add.overlap(this.player, this.mermaids, this.collectMermaid, null, this);
         this.physics.add.overlap(this.player, this.crystalsGroup, this.collectCrystal, null, this);
-        this.physics.add.overlap(this.player, this.pirates, (p, e) => this.player.takeDamage(), null, this);
+        this.physics.add.overlap(this.player, this.pirates, (p, e) => {
+            if (!e.getData('dying')) this.player.takeDamage();
+        }, null, this);
+        this.physics.add.overlap(this.player, this.swordfishGroup, (p, e) => {
+            if (!e.getData('dying')) this.player.takeDamage();
+        }, null, this);
         this.physics.add.collider(this.player, this.boat, null, (p, b) => {
             // Only solid if player is falling from above and NOT in the middle of a dive
             if (p.isDivingInitiated) return false;
@@ -156,7 +163,19 @@ export class Game extends Phaser.Scene {
                 this.playDeathAnimation(pirate);
                 this.score += 200;
             });
+            this.physics.overlap(this.player.sword, this.swordfishGroup, (s, fish) => {
+                if (fish.getData('dying')) return;
+                fish.setData('dying', true);
+                fish.body.setVelocity(0, 0);
+                this.playDeathAnimation(fish);
+                this.score += 300;
+            });
         }
+
+        // Update swordfish tracking
+        this.swordfishGroup.getChildren().forEach(fish => {
+            if (fish.update) fish.update();
+        });
 
         // Update air bubbles visuals
         this.airBubbles.getChildren().forEach(bubble => {
@@ -249,9 +268,18 @@ export class Game extends Phaser.Scene {
         const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
         const safeY = (Math.abs(y - this.player.y) < 100) ? y + 200 : y;
         const p = this.pirates.create(x, Math.min(2900, safeY), 'pirate').setScale(0.4);
-        // Shrink hitbox vertically by even more (to 30% of height)
         p.body.setSize(p.width * 0.6, p.height * 0.3).setOffset(p.width * 0.2, p.height * 0.35);
         p.body.setVelocityX(-150 * this.difficulty);
+    }
+
+    spawnSwordfish() {
+        if (this.player.y <= 300) return; // Only spawn while diving
+        const cam = this.cameras.main;
+        const side = Phaser.Math.Between(0, 1);
+        const x = side === 0 ? cam.worldView.left - 100 : cam.worldView.right + 100;
+        const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
+        const fish = new Swordfish(this, x, y);
+        this.swordfishGroup.add(fish);
     }
 
     spawnMermaid() {
