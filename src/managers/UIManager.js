@@ -13,7 +13,17 @@ export class UIManager {
 
     create() {
         const uiStyle = { fontSize: '20px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
-        this.airText = this.scene.add.text(16, 16, 'Air: 100%', uiStyle).setScrollFactor(0).setDepth(100);
+
+        // Air bar
+        const barWidth = 150;
+        const barHeight = 16;
+        this.airBarBg = this.scene.add.rectangle(16, 20, barWidth, barHeight, 0x333333)
+            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+        this.airBarFill = this.scene.add.rectangle(16, 20, barWidth, barHeight, 0x00cc44)
+            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+        this.airText = this.scene.add.text(16 + barWidth + 8, 20, '100%', { fontSize: '14px', fill: '#fff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2 })
+            .setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+
         this.scoreText = this.scene.add.text(16, 44, 'Score: 0', uiStyle).setScrollFactor(0).setDepth(100);
         this.moneyText = this.scene.add.text(16, 72, 'Money: $0', uiStyle).setScrollFactor(0).setDepth(100);
         this.crystalsText = this.scene.add.text(16, 100, 'Crystals: 0', uiStyle).setScrollFactor(0).setDepth(100);
@@ -31,7 +41,15 @@ export class UIManager {
     }
 
     update(air, score, money, crystals, playerY, health) {
-        this.airText.setText(`Air: ${Math.floor(air)}%`);
+        // Update air bar
+        const airPct = Math.max(0, Math.min(100, air));
+        const barWidth = 150;
+        this.airBarFill.width = barWidth * (airPct / 100);
+        if (airPct > 50) this.airBarFill.setFillStyle(0x00cc44);
+        else if (airPct > 25) this.airBarFill.setFillStyle(0xcccc00);
+        else this.airBarFill.setFillStyle(0xcc2200);
+        this.airText.setText(`${Math.floor(airPct)}%`);
+
         this.scoreText.setText(`Score: ${score}`);
         this.moneyText.setText(`Money: $${money}`);
         this.crystalsText.setText(`Crystals: ${crystals}`);
