@@ -8,7 +8,7 @@ export const WORLD = {
 
 export const PLAYER = {
     MAX_AIR: 100,
-    MAX_HEALTH: 3,
+    MAX_HEALTH: 6,
     AIR_DEPLETION: 3,
     AIR_BUBBLE_RESTORE: 5,
     SWIM_SPEED: 200,
