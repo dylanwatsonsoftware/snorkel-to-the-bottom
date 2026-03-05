@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Boat } from '../entities/Boat';
 import { WorldManager } from '../managers/WorldManager';
-import { UIManager } from '../managers/UIManager';
 import { EffectsManager } from '../managers/EffectsManager';
 import { CollectionManager } from '../managers/CollectionManager';
 import { WORLD, PLAYER, CAMERA, COMBAT, SCORING, UPGRADES } from '../config/GameConfig';
@@ -85,11 +84,9 @@ export class Game extends Phaser.Scene {
         this.effectsManager = new EffectsManager(this);
         this.worldManager = new WorldManager(this);
         this.collectionManager = new CollectionManager(this, this.effectsManager);
-        this.uiManager = new UIManager(this);
         this.setupSounds();
 
         this.worldManager.createGroups();
-        this.uiManager.create();
         this.worldManager.generateWorldItems();
         this.worldManager.setupPeriodicSpawning();
 
@@ -182,7 +179,7 @@ export class Game extends Phaser.Scene {
         if (this.isGameOver) return;
         this.difficulty += 0.0001;
 
-        const joystickMove = this.uiManager.getMovement();
+        const joystickMove = this.hudScene ? this.hudScene.getMovement() : { x: 0, y: 0 };
         let moveX = joystickMove.x;
         let moveY = joystickMove.y;
 
@@ -232,7 +229,7 @@ export class Game extends Phaser.Scene {
             this.targetZoom = CAMERA.SURFACE_ZOOM;
             this.cameras.main.startFollow(this.boat, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
             this.player.setVisible(false);
-            this.uiManager.setActionLabel('FIRE');
+            this.hudScene.setActionLabel('FIRE');
             this.soundManager.play('splash');
             // Despawn underwater enemies when resurfacing
             this.worldManager.swordfishGroup.clear(true, true);
@@ -246,7 +243,7 @@ export class Game extends Phaser.Scene {
                 this.gameMode = 'diving';
                 this.targetZoom = CAMERA.DIVING_ZOOM;
                 this.cameras.main.startFollow(this.player, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
-                this.uiManager.setActionLabel('SLASH');
+                this.hudScene.setActionLabel('SLASH');
                 this.player.setVisible(true);
                 this.player.dive(() => {
                     this.effectsManager.createSplash(this.player.x, WORLD.WATERLINE_Y);
@@ -265,11 +262,11 @@ export class Game extends Phaser.Scene {
 
     handleCombatInput(isDiving) {
         if (this.gameMode === 'surface' && !isDiving) {
-            if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.consumeSlash()) {
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.hudScene.consumeSlash()) {
                 this.fireCannonball();
             }
         }
-        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.consumeSlash())) {
+        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.hudScene.consumeSlash())) {
             this.player.swingSword();
         }
     }
@@ -300,8 +297,8 @@ export class Game extends Phaser.Scene {
     fireCannonball() {
         const dir = this.boat.flipX ? -1 : 1;
         const ball = this.worldManager.cannonballs.create(this.boat.x + dir * 40, this.boat.y - 8, 'cannonball');
-        ball.body.setVelocity(dir * COMBAT.CANNONBALL_SPEED, -50);
-        ball.body.setGravityY(60);
+        ball.body.setVelocity(dir * COMBAT.CANNONBALL_SPEED, -20);
+        ball.body.setGravityY(25);
         this.time.delayedCall(COMBAT.CANNONBALL_LIFETIME, () => { if (ball.active) ball.destroy(); });
         this.soundManager.play('cannon');
     }
