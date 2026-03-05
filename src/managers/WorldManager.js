@@ -67,7 +67,11 @@ export class WorldManager {
 
         const worldWidth = this.scene.physics.world.bounds.width;
         this.cannonballs.getChildren().forEach(ball => {
-            if (ball.x < -100 || ball.x > worldWidth + 100) {
+            if (ball.x < -100 || ball.x > worldWidth + 500) {
+                ball.destroy();
+            } else if (ball.body && ball.body.velocity.y > 0 && ball.y >= (WORLD.WATERLINE_Y)) {
+                // Cannonball splashes into the water
+                this.scene.effectsManager.createSplash(ball.x, WORLD.WATERLINE_Y);
                 ball.destroy();
             }
         });

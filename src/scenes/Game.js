@@ -299,9 +299,9 @@ export class Game extends Phaser.Scene {
 
     fireCannonball() {
         const dir = this.boat.flipX ? -1 : 1;
-        const ball = this.worldManager.cannonballs.create(this.boat.x + dir * 40, this.boat.y - 10, 'cannonball');
-        ball.body.setAllowGravity(false);
-        ball.body.setVelocityX(dir * COMBAT.CANNONBALL_SPEED);
+        const ball = this.worldManager.cannonballs.create(this.boat.x + dir * 40, this.boat.y - 8, 'cannonball');
+        ball.body.setVelocity(dir * COMBAT.CANNONBALL_SPEED, -50);
+        ball.body.setGravityY(60);
         this.time.delayedCall(COMBAT.CANNONBALL_LIFETIME, () => { if (ball.active) ball.destroy(); });
         this.soundManager.play('cannon');
     }
