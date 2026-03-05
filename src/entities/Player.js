@@ -29,6 +29,7 @@ export class Player extends Phaser.GameObjects.Sprite {
 
         this.scene.physics.add.existing(this.sword);
         this.sword.body.setSize(120, 120);
+        this.sword.body.setOffset(-60, -60);
         this.sword.body.setAllowGravity(false);
         this.sword.body.setImmovable(true);
     }
@@ -68,12 +69,16 @@ export class Player extends Phaser.GameObjects.Sprite {
 
         if (isDiving) {
             this.body.setVelocity(moveX * speed, moveY * speed);
-            if (moveX < 0) this.setFlipX(true);
-            else if (moveX > 0) this.setFlipX(false);
+            if (!this.isSwinging) {
+                if (moveX < 0) this.setFlipX(true);
+                else if (moveX > 0) this.setFlipX(false);
+            }
 
             const isMoving = moveX !== 0 || moveY !== 0;
 
-            if (isMoving) {
+            if (this.isSwinging) {
+                this.setAngle(0);
+            } else if (isMoving) {
                 let targetAngle = 0;
                 if (moveY < 0) targetAngle = this.flipX ? 45 : -45;
                 else if (moveY > 0) targetAngle = this.flipX ? -45 : 45;
@@ -91,41 +96,33 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
 
         if (this.isSwinging) {
-            // Unified offset so it looks like it's in the hand
-            const offsetX = this.flipX ? -20 : 20;
-            const offsetY = 5;
+            const offsetX = this.swingFacingLeft ? -20 : 20;
             this.sword.x = this.x + offsetX;
-            this.sword.y = this.y + offsetY;
-            // Sync hitbox position
-            this.sword.body.x = this.sword.x - 60;
-            this.sword.body.y = this.sword.y - 60;
+            this.sword.y = this.y + 5;
         }
     }
 
     swingSword() {
         if (this.isSwinging) return;
         this.isSwinging = true;
+        this.swingFacingLeft = this.flipX;
 
         this.sword.setAlpha(1);
-        const offsetX = this.flipX ? -20 : 20;
-        const offsetY = 5;
+        const offsetX = this.swingFacingLeft ? -20 : 20;
         this.sword.x = this.x + offsetX;
-        this.sword.y = this.y + offsetY;
+        this.sword.y = this.y + 5;
 
-        // Start angle for a massive centered arc
-        // Facing Right: -90 to +90 (sweeping across the front)
-        // Facing Left: 270 to 90 (or 90 to 270)
-        const startAngle = this.flipX ? 270 : -90;
-        const endAngle = this.flipX ? 90 : 90;
+        const startAngle = this.swingFacingLeft ? 270 : -90;
+        const endAngle = this.swingFacingLeft ? 90 : 90;
 
         this.sword.setAngle(startAngle);
-        this.sword.setScale(this.flipX ? -1 : 1, 1);
+        this.sword.setScale(this.swingFacingLeft ? -1 : 1, 1);
 
         this.scene.tweens.add({
             targets: this.sword,
             angle: endAngle,
             duration: 250,
-            ease: 'Back.out',
+            ease: 'Power2',
             onComplete: () => {
                 this.sword.setAlpha(0);
                 this.isSwinging = false;

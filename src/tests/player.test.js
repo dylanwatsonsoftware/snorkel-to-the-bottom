@@ -9,6 +9,7 @@ const makePhysicsBody = () => ({
     setAllowGravity: vi.fn(),
     setImmovable: vi.fn(),
     setSize: vi.fn(),
+    setOffset: vi.fn(),
     setVelocity: vi.fn(),
     setVelocityX: vi.fn(),
     x: 0,
