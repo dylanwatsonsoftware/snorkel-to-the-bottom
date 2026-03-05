@@ -31,19 +31,16 @@ export class UIManager {
         // --- Left Panel: Semi-transparent background ---
         const panelBg = this.scene.add.graphics();
         panelBg.fillStyle(0x000011, 0.4);
-        panelBg.fillRoundedRect(pad - 8, pad - 6, 196, 126, 8);
+        panelBg.fillRoundedRect(pad - 8, pad - 6, 196, 100, 8);
         panelBg.lineStyle(1, 0x335577, 0.5);
-        panelBg.strokeRoundedRect(pad - 8, pad - 6, 196, 126, 8);
+        panelBg.strokeRoundedRect(pad - 8, pad - 6, 196, 100, 8);
 
         // --- Air Bar ---
         this.airBarWidth = 152;
         const barH = 10;
         const airY = pad + 8;
 
-        const airLabel = this.scene.add.text(pad, pad - 4, 'O\u2082', {
-            fontSize: '12px', fill: '#66ccff', fontStyle: 'bold',
-            stroke: '#000', strokeThickness: 2
-        });
+        const airIcon = this.scene.add.image(pad + 8, airY, 'icon-bubble');
 
         const airBarBg = this.scene.add.rectangle(pad + 26, airY, this.airBarWidth, barH, 0x112233)
             .setOrigin(0, 0.5);
@@ -54,28 +51,28 @@ export class UIManager {
         airBarFrame.lineStyle(1, 0x4488aa, 0.8);
         airBarFrame.strokeRect(pad + 25, airY - barH / 2 - 1, this.airBarWidth + 2, barH + 2);
 
-        // --- Stats Grid (2x2) ---
-        const labelStyle = { fontSize: '10px', fill: '#8899aa', fontStyle: 'bold', stroke: '#000', strokeThickness: 1 };
+        // --- Stats Grid (2x2) with icons ---
         const valStyle = { fontSize: '16px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
+        const iconOffY = 2;
 
         const col1 = pad;
         const col2 = pad + 98;
-        const row1 = airY + 14;
-        const row2 = row1 + 36;
+        const row1 = airY + 16;
+        const row2 = row1 + 32;
 
-        const scoreLabel = this.scene.add.text(col1, row1, 'SCORE', labelStyle);
-        this.scoreText = this.scene.add.text(col1, row1 + 12, '0', valStyle);
+        const scoreIcon = this.scene.add.image(col1 + 8, row1 + iconOffY, 'icon-star');
+        this.scoreText = this.scene.add.text(col1 + 20, row1 - 6, '0', valStyle);
 
-        const goldLabel = this.scene.add.text(col2, row1, 'GOLD', labelStyle);
-        this.moneyText = this.scene.add.text(col2, row1 + 12, '$0',
+        const goldIcon = this.scene.add.image(col2 + 8, row1 + iconOffY, 'icon-coin');
+        this.moneyText = this.scene.add.text(col2 + 20, row1 - 6, '$0',
             { ...valStyle, fill: '#ffdd44' });
 
-        const crystalsLabel = this.scene.add.text(col1, row2, 'CRYSTALS', labelStyle);
-        this.crystalsText = this.scene.add.text(col1, row2 + 12, '0',
+        const crystalIcon = this.scene.add.image(col1 + 8, row2 + iconOffY, 'icon-crystal');
+        this.crystalsText = this.scene.add.text(col1 + 20, row2 - 6, '0',
             { ...valStyle, fill: '#cc88ff' });
 
-        const depthLabel = this.scene.add.text(col2, row2, 'DEPTH', labelStyle);
-        this.depthText = this.scene.add.text(col2, row2 + 12, '0m',
+        const depthIcon = this.scene.add.image(col2 + 8, row2 + iconOffY, 'icon-depth');
+        this.depthText = this.scene.add.text(col2 + 20, row2 - 6, '0m',
             { ...valStyle, fill: '#66ddff' });
 
         // --- Hearts (top-right) ---
@@ -103,11 +100,11 @@ export class UIManager {
         // Add everything to HUD container
         this.uiContainer.add([
             panelBg,
-            airLabel, airBarBg, this.airBarFill, airBarFrame,
-            scoreLabel, this.scoreText,
-            goldLabel, this.moneyText,
-            crystalsLabel, this.crystalsText,
-            depthLabel, this.depthText,
+            airIcon, airBarBg, this.airBarFill, airBarFrame,
+            scoreIcon, this.scoreText,
+            goldIcon, this.moneyText,
+            crystalIcon, this.crystalsText,
+            depthIcon, this.depthText,
             heartPanelBg, ...this.hearts
         ]);
     }

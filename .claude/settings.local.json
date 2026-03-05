@@ -8,7 +8,8 @@
       "Bash(wc:*)",
       "Bash(git status:*)",
       "Bash(npx vitest run:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

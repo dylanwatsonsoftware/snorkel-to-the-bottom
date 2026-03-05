@@ -201,5 +201,82 @@ export class Boot extends Phaser.Scene {
         heartFill(he, 0x333344);
         he.generateTexture('heart-empty', hs, hs);
         he.destroy();
+
+        // --- HUD Icons ---
+        const iconSize = 16;
+
+        // Coin icon (gold circle with $ indent)
+        const coin = this.add.graphics();
+        coin.fillStyle(0xffcc00, 1);
+        coin.fillCircle(8, 8, 7);
+        coin.fillStyle(0xddaa00, 1);
+        coin.fillCircle(8, 8, 5);
+        coin.fillStyle(0xffdd44, 1);
+        coin.fillCircle(7, 7, 4);
+        coin.generateTexture('icon-coin', iconSize, iconSize);
+        coin.destroy();
+
+        // Star icon (score)
+        const star = this.add.graphics();
+        star.fillStyle(0xffee44, 1);
+        star.beginPath();
+        star.moveTo(8, 1);
+        star.lineTo(10, 6);
+        star.lineTo(15, 6);
+        star.lineTo(11, 9);
+        star.lineTo(13, 15);
+        star.lineTo(8, 11);
+        star.lineTo(3, 15);
+        star.lineTo(5, 9);
+        star.lineTo(1, 6);
+        star.lineTo(6, 6);
+        star.closePath();
+        star.fill();
+        star.generateTexture('icon-star', iconSize, iconSize);
+        star.destroy();
+
+        // Bubble icon (air)
+        const bub = this.add.graphics();
+        bub.lineStyle(2, 0x66ccff, 1);
+        bub.strokeCircle(8, 8, 6);
+        bub.fillStyle(0x66ccff, 0.3);
+        bub.fillCircle(8, 8, 6);
+        bub.fillStyle(0xffffff, 0.7);
+        bub.fillCircle(6, 6, 2);
+        bub.generateTexture('icon-bubble', iconSize, iconSize);
+        bub.destroy();
+
+        // Depth arrow icon (downward arrow)
+        const darr = this.add.graphics();
+        darr.fillStyle(0x66ddff, 1);
+        darr.fillRect(6, 1, 4, 9);
+        darr.fillTriangle(8, 15, 2, 7, 14, 7);
+        darr.generateTexture('icon-depth', iconSize, iconSize);
+        darr.destroy();
+
+        // Crystal icon (small purple gem)
+        const crIcon = this.add.graphics();
+        crIcon.fillStyle(0x9944cc, 1);
+        crIcon.beginPath();
+        crIcon.moveTo(8, 1);
+        crIcon.lineTo(13, 5);
+        crIcon.lineTo(11, 14);
+        crIcon.lineTo(5, 14);
+        crIcon.lineTo(3, 5);
+        crIcon.closePath();
+        crIcon.fill();
+        crIcon.fillStyle(0xbb66ee, 1);
+        crIcon.beginPath();
+        crIcon.moveTo(8, 1);
+        crIcon.lineTo(10, 5);
+        crIcon.lineTo(8, 14);
+        crIcon.lineTo(5, 14);
+        crIcon.lineTo(3, 5);
+        crIcon.closePath();
+        crIcon.fill();
+        crIcon.fillStyle(0xdd99ff, 0.6);
+        crIcon.fillTriangle(5, 4, 8, 2, 7, 7);
+        crIcon.generateTexture('icon-crystal', iconSize, iconSize);
+        crIcon.destroy();
     }
 }
