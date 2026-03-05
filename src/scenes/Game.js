@@ -150,7 +150,10 @@ export class Game extends Phaser.Scene {
 
         if (this.player.isSwinging) {
             this.physics.overlap(this.player.sword, this.pirates, (s, pirate) => {
-                pirate.destroy();
+                if (pirate.getData('dying')) return;
+                pirate.setData('dying', true);
+                pirate.body.setVelocity(0, 0);
+                this.playDeathAnimation(pirate);
                 this.score += 200;
             });
         }
@@ -303,6 +306,37 @@ export class Game extends Phaser.Scene {
         this.soundManager = {
             play: (key) => console.log(`SFX: ${key}`)
         };
+    }
+
+    playDeathAnimation(enemy) {
+        // Spawn burst particles
+        for (let i = 0; i < 6; i++) {
+            const p = this.add.circle(enemy.x, enemy.y, Phaser.Math.Between(3, 6),
+                Phaser.Math.RND.pick([0xff4400, 0xff8800, 0xffcc00]), 0.9);
+            p.setDepth(enemy.depth + 1);
+            this.tweens.add({
+                targets: p,
+                x: p.x + Phaser.Math.Between(-60, 60),
+                y: p.y + Phaser.Math.Between(-60, 60),
+                alpha: 0,
+                scale: 0.1,
+                duration: Phaser.Math.Between(300, 500),
+                onComplete: () => p.destroy()
+            });
+        }
+
+        // Flash white, spin, shrink, fade
+        enemy.setTint(0xffffff);
+        this.tweens.add({
+            targets: enemy,
+            angle: 360,
+            scaleX: 0,
+            scaleY: 0,
+            alpha: 0,
+            duration: 500,
+            ease: 'Power2',
+            onComplete: () => enemy.destroy()
+        });
     }
 
     createSplash(x, y) {
