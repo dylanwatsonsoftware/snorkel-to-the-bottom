@@ -44,7 +44,7 @@ export const SCORING = {
 };
 
 export const SPAWNING = {
-    INITIAL: { treasures: 4, crystals: 2, scuba: 1 },
+    INITIAL: { treasures: 4, crystals: 2, scuba: 1, pirates: 1, mermaid: 1 },
     MIN_SPACING: 80,
     INTERVALS: {
         airBubble: 8000,

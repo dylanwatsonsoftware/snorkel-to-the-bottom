@@ -30,6 +30,8 @@ export class WorldManager {
         for (let i = 0; i < counts.treasures; i++) this.spawnTreasure();
         for (let i = 0; i < counts.crystals; i++) this.spawnCrystal();
         for (let i = 0; i < counts.scuba; i++) this.spawnScubaTank();
+        for (let i = 0; i < counts.pirates; i++) this.spawnPirate();
+        for (let i = 0; i < counts.mermaids; i++) this.spawnMermaid();
     }
 
     setupPeriodicSpawning() {
