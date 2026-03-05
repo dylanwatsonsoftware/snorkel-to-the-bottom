@@ -95,6 +95,7 @@ export class UIManager {
         const jY = height - padding - baseRadius - 90;
 
         this.joystick.base = this.scene.add.circle(jX, jY, baseRadius, 0xffffff, 0.1)
+            .setScrollFactor(0)
             .setInteractive();
 
         this.joystick.thumb = this.scene.add.circle(jX, jY, thumbRadius, 0xffffff, 0.3);
@@ -121,6 +122,7 @@ export class UIManager {
         const fireY = height - padding - btnSize / 2 - 80;
 
         this.actionBtn = this.scene.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
+            .setScrollFactor(0)
             .setInteractive()
             .on('pointerdown', () => this.mobileInputs.slash = true)
             .on('pointerup', () => this.mobileInputs.slash = false)
@@ -161,6 +163,14 @@ export class UIManager {
 
     setActionLabel(label) {
         if (this.actionBtnText) this.actionBtnText.setText(label);
+    }
+
+    consumeSlash() {
+        if (this.mobileInputs.slash) {
+            this.mobileInputs.slash = false;
+            return true;
+        }
+        return false;
     }
 
     getMovement() {

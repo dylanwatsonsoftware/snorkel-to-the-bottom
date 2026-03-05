@@ -254,11 +254,11 @@ export class Game extends Phaser.Scene {
 
     handleCombatInput(isDiving) {
         if (this.gameMode === 'surface' && !isDiving) {
-            if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.slash) {
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.consumeSlash()) {
                 this.fireCannonball();
             }
         }
-        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.slash)) {
+        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.consumeSlash())) {
             this.player.swingSword();
         }
     }
