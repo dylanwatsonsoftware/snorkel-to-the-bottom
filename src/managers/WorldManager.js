@@ -46,6 +46,10 @@ export class WorldManager {
             if (fish.update) fish.update();
         });
 
+        this.mermaids.getChildren().forEach(mermaid => {
+            if (mermaid.update) mermaid.update();
+        });
+
         this.pirateShips.getChildren().forEach(ship => {
             if (ship.update) ship.update(this.scene.boat, this.scene.difficulty);
         });

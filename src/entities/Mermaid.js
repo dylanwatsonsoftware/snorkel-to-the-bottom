@@ -22,6 +22,12 @@ export class Mermaid extends Phaser.GameObjects.Sprite {
         this.body.setVelocityX(this.swimVelocity);
     }
 
+    update() {
+        // Swim wobble — same style as the player
+        const swimWobble = Math.sin(this.scene.time.now / 150) * 8;
+        this.setAngle(swimWobble);
+    }
+
     swimAway() {
         // Reverse direction and speed up
         this.swimVelocity = -this.swimVelocity * 1.5;
