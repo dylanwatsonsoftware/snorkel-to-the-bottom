@@ -86,7 +86,7 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
 
         if (this.isSwinging) {
-            const offsetX = this.swingFacingLeft ? -35 : 35;
+            const offsetX = this.swingFacingLeft ? -50 : 50;
             this.sword.x = this.x + offsetX;
             this.sword.y = this.y;
         }
@@ -98,11 +98,12 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.swingFacingLeft = this.flipX;
 
         this.sword.setAlpha(1);
-        this.sword.x = this.x + (this.swingFacingLeft ? -35 : 35);
+        this.sword.x = this.x + (this.swingFacingLeft ? -50 : 50);
         this.sword.y = this.y;
 
         this.sword.setAngle(-90);
         this.sword.setFlipX(this.swingFacingLeft);
+        this.sword.setOrigin(this.swingFacingLeft ? 0.97 : 0.03, 1.0);
 
         this.scene.tweens.add({
             targets: this.sword,
