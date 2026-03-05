@@ -126,7 +126,7 @@ export class GameOver extends Phaser.Scene {
 
             chip.on('pointerdown', () => {
                 this.nameInput.value = name;
-                this.nameInput.focus();
+                this.onSubmit();
             });
             chip.on('pointerover', () => chip.setStyle({ fill: '#88ddff' }));
             chip.on('pointerout', () => chip.setStyle({ fill: '#44aadd' }));
