@@ -8,7 +8,7 @@ export class UIManager {
         this.depthText = null;
         this.healthText = null;
         this.joystick = { base: null, thumb: null, active: false, x: 0, y: 0, distance: 0, angle: 0, pointer: null };
-        this.mobileInputs = { fire: false };
+        this.mobileInputs = { slash: false };
     }
 
     create() {
@@ -86,11 +86,11 @@ export class UIManager {
             .setScrollFactor(0)
             .setInteractive()
             .setDepth(100)
-            .on('pointerdown', () => this.mobileInputs.fire = true)
-            .on('pointerup', () => this.mobileInputs.fire = false)
-            .on('pointerout', () => this.mobileInputs.fire = false);
+            .on('pointerdown', () => this.mobileInputs.slash = true)
+            .on('pointerup', () => this.mobileInputs.slash = false)
+            .on('pointerout', () => this.mobileInputs.slash = false);
 
-        this.scene.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
+        this.scene.add.text(fireX, fireY, 'SLASH', { fontSize: '24px', fill: '#fff' })
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(101);

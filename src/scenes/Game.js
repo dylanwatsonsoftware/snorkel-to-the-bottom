@@ -144,7 +144,7 @@ export class Game extends Phaser.Scene {
         }
 
         // Sword swing only works once diving
-        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.fire)) {
+        if (isDiving && (Phaser.Input.Keyboard.JustDown(this.cursors.space) || this.uiManager.mobileInputs.slash)) {
             this.player.swingSword();
         }
 
