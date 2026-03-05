@@ -239,7 +239,7 @@ export class Game extends Phaser.Scene {
 
         // Dive
         if (!isDiving && !this.player.isDivingInitiated) {
-            if (this.cursors.down.isDown || (moveY > 0 && moveY > Math.abs(moveX))) {
+            if (this.cursors.down.isDown || (moveY > 0)) {
                 this.gameMode = 'diving';
                 this.targetZoom = CAMERA.DIVING_ZOOM;
                 this.cameras.main.startFollow(this.player, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
