@@ -33,23 +33,24 @@ export class Game extends Phaser.Scene {
         const bgWidth = Math.max(width * 3, 2400);
         this.add.rectangle(width / 2, 0, bgWidth, WORLD.WATERLINE_Y, 0x87ceeb).setOrigin(0.5, 0).setDepth(-3);
 
-        // Parallax sky layers
+        // Parallax sky layers (manual positioning — camera can't scroll at 0.7 zoom)
         const cloudPositions = [
             { x: 100, y: 80, s: 1.2 }, { x: 350, y: 50, s: 0.9 },
             { x: 600, y: 90, s: 1.0 }, { x: 900, y: 60, s: 1.3 },
             { x: 1200, y: 75, s: 1.1 }, { x: 1500, y: 45, s: 0.8 },
             { x: 1800, y: 85, s: 1.0 }, { x: 2100, y: 55, s: 1.2 },
         ];
-        // Far clouds — slow scroll
+        this.skyLayers = { far: [], near: [] };
         cloudPositions.forEach(({ x, y, s }) => {
-            this.add.image(x, y, 'cloud').setScale(s * 1.2).setAlpha(0.3)
-                .setScrollFactor(0.1, 1).setDepth(-2);
+            const c = this.add.image(x, y, 'cloud').setScale(s * 1.2).setAlpha(0.3).setDepth(-2);
+            c.setData('baseX', x);
+            this.skyLayers.far.push(c);
         });
-        // Near clouds — faster scroll
         cloudPositions.forEach(({ x, y, s }, i) => {
             if (i % 2 === 0) return;
-            this.add.image(x + 150, y + 30, 'cloud').setScale(s * 0.8).setAlpha(0.6)
-                .setScrollFactor(0.3, 1).setDepth(-2);
+            const c = this.add.image(x + 150, y + 30, 'cloud').setScale(s * 0.8).setAlpha(0.6).setDepth(-2);
+            c.setData('baseX', x + 150);
+            this.skyLayers.near.push(c);
         });
 
         // Gradient underwater background
@@ -73,6 +74,7 @@ export class Game extends Phaser.Scene {
         // Entities
         this.boat = new Boat(this, width / 4, 305);
         this.player = new Player(this, width / 4, 265);
+        this.player.setVisible(false);
 
         // Managers
         this.effectsManager = new EffectsManager(this);
@@ -127,10 +129,17 @@ export class Game extends Phaser.Scene {
         // Surface combat
         this.physics.add.overlap(wm.cannonballs, wm.pirateShips, (ball, ship) => this.hitPirateShip(ball, ship), null, this);
         this.physics.add.overlap(this.boat, wm.pirateShips, (boat, ship) => {
-            if (!ship.getData('dying')) {
+            if (ship.getData('dying')) return;
+            ship.setData('dying', true);
+            this.effectsManager.playDeathAnimation(ship);
+            if (!this.player.isInvincible) {
                 this.player.takeDamage();
-                ship.setData('dying', true);
-                this.effectsManager.playDeathAnimation(ship);
+                this.tweens.add({
+                    targets: this.boat,
+                    alpha: 0.2, duration: 100,
+                    yoyo: true, repeat: 5,
+                    onComplete: () => { this.boat.alpha = 1; }
+                });
             }
         }, null, this);
         this.physics.add.overlap(this.boat, wm.surfaceUpgrades, (b, u) => cm.collectUpgrade(b, u), null, this);
@@ -195,6 +204,7 @@ export class Game extends Phaser.Scene {
         this.handleSwordOverlaps();
         this.worldManager.update();
         this.updateLighting();
+        this.updateParallax();
         this.uiManager.update(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
     }
 
@@ -210,7 +220,7 @@ export class Game extends Phaser.Scene {
             this.gameMode = 'surface';
             this.targetZoom = CAMERA.SURFACE_ZOOM;
             this.cameras.main.startFollow(this.boat, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
-            this.player.setVisible(true);
+            this.player.setVisible(false);
             this.uiManager.setActionLabel('FIRE');
             this.soundManager.play('splash');
             // Despawn underwater enemies when resurfacing
@@ -226,6 +236,7 @@ export class Game extends Phaser.Scene {
                 this.targetZoom = CAMERA.DIVING_ZOOM;
                 this.cameras.main.startFollow(this.player, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
                 this.uiManager.setActionLabel('SLASH');
+                this.player.setVisible(true);
                 this.player.dive(() => {
                     this.effectsManager.createSplash(this.player.x, WORLD.WATERLINE_Y);
                     this.soundManager.play('splash');
@@ -291,6 +302,13 @@ export class Game extends Phaser.Scene {
             this.score += SCORING.PIRATE_SHIP_SCORE;
             this.collectionManager.dropUpgrade(ship.x, 290);
         }
+    }
+
+    updateParallax() {
+        const worldCenter = this.physics.world.bounds.width / 2;
+        const offset = this.boat.x - worldCenter;
+        this.skyLayers.far.forEach(c => { c.x = c.getData('baseX') - offset * 0.15; });
+        this.skyLayers.near.forEach(c => { c.x = c.getData('baseX') - offset * 0.4; });
     }
 
     updateLighting() {

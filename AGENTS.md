@@ -6,4 +6,4 @@
 - If the build fails, fix the build and then run npm run build again
 - If the build works, run npm run dev to make sure the game works
 - If the game doesn't work, fix the game adding more tests as needed
-
+- Once you have a feature working, ensure you commit it.
