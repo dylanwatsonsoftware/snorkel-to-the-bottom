@@ -190,7 +190,7 @@ export class Game extends Phaser.Scene {
 
         const isDiving = this.player.y > WORLD.WATERLINE_Y;
 
-        this.handleModeTransitions(isDiving, moveY);
+        this.handleModeTransitions(isDiving, moveX, moveY);
         this.updateCamera();
 
         const swimSpeed = PLAYER.SWIM_SPEED * (1 + this.upgrades.swimSpeed * UPGRADES.SWIM_BONUS_FACTOR);
@@ -216,7 +216,7 @@ export class Game extends Phaser.Scene {
         }
     }
 
-    handleModeTransitions(isDiving, moveY) {
+    handleModeTransitions(isDiving, moveX, moveY) {
         // Resurface
         if (this.wasDiving && !isDiving && this.player.isDivingInitiated) {
             this.player.isDivingInitiated = false;
@@ -237,9 +237,10 @@ export class Game extends Phaser.Scene {
         }
         this.wasDiving = isDiving;
 
-        // Dive
+        // Dive — keyboard down always triggers; joystick only if pointing more down than sideways
         if (!isDiving && !this.player.isDivingInitiated) {
-            if (this.cursors.down.isDown || (moveY > 0)) {
+            const joystickDown = moveY > 0.3 && moveY > Math.abs(moveX);
+            if (this.cursors.down.isDown || joystickDown) {
                 this.gameMode = 'diving';
                 this.targetZoom = CAMERA.DIVING_ZOOM;
                 this.cameras.main.startFollow(this.player, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
