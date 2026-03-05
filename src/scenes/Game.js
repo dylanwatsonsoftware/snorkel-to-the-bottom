@@ -348,12 +348,15 @@ export class Game extends Phaser.Scene {
 
     spawnMermaid() {
         const cam = this.cameras.main;
-        const x = cam.worldView.right + 200;
+        const side = Phaser.Math.Between(0, 1);
+        const x = side === 0 ? cam.worldView.right + 200 : cam.worldView.left - 200;
         const y = Phaser.Math.Between(Math.max(400, cam.worldView.top), Math.min(2800, cam.worldView.bottom));
+        const velX = side === 0 ? -100 : 100;
         const m = this.mermaids.create(x, y, 'mermaid').setScale(0.3);
         m.body.setSize(m.width * 0.5, m.height * 0.5);
         m.body.setOffset(m.width * 0.25, m.height * 0.25);
-        m.body.setVelocityX(-100);
+        m.body.setVelocityX(velX);
+        m.setFlipX(velX > 0);
         if (Phaser.Math.Between(0, 1) === 1) this.spawnCrystal(x, y);
     }
 
