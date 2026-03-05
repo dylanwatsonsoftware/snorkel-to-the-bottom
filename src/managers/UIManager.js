@@ -50,9 +50,13 @@ export class UIManager {
     }
 
     update(air, score, money, crystals, playerY, health) {
-        // Counter-scale UI container to negate camera zoom
-        const zoom = this.scene.cameras.main.zoom;
+        // Counter-scale and reposition UI container to negate camera zoom
+        const cam = this.scene.cameras.main;
+        const zoom = cam.zoom;
+        const centerX = cam.width / 2;
+        const centerY = cam.height / 2;
         this.uiContainer.setScale(1 / zoom);
+        this.uiContainer.setPosition(centerX * (1 - 1 / zoom), centerY * (1 - 1 / zoom));
 
         // Update air bar
         const airPct = Math.max(0, Math.min(100, air));
