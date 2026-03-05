@@ -15,7 +15,7 @@ export class GameOver extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
         const cx = width / 2;
-        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        this.dpr = Math.max(window.devicePixelRatio || 1, 2) * 2;
 
         // Dark overlay
         this.add.rectangle(cx, height / 2, width, height, 0x000000, 0.75).setDepth(0);
@@ -23,24 +23,24 @@ export class GameOver extends Phaser.Scene {
         // GAME OVER title
         this.add.text(cx, 40, 'GAME OVER', {
             fontSize: '48px', fill: '#ff4444', fontStyle: 'bold',
-            stroke: '#000', strokeThickness: 4, resolution: dpr
+            stroke: '#000', strokeThickness: 4, resolution: this.dpr
         }).setOrigin(0.5).setDepth(1);
 
         // Score display
         this.add.text(cx, 90, `Score: ${this.finalScore}  |  Depth: ${this.finalDepth}m`, {
-            fontSize: '22px', fill: '#ffffff',
-            stroke: '#000', strokeThickness: 2, resolution: dpr
+            fontSize: '24px', fill: '#ffffff',
+            stroke: '#000', strokeThickness: 2, resolution: this.dpr
         }).setOrigin(0.5).setDepth(1);
 
         // Country flag display
-        this.flagText = this.add.text(cx + 105, 128, this.playerFlag, {
-            fontSize: '24px', resolution: dpr
+        this.flagText = this.add.text(cx + 115, 128, this.playerFlag, {
+            fontSize: '26px', resolution: this.dpr
         }).setOrigin(0.5).setDepth(1);
 
         // "Enter your name" label
         this.add.text(cx, 128, 'Enter your name:', {
-            fontSize: '18px', fill: '#aaddff',
-            stroke: '#000', strokeThickness: 1, resolution: dpr
+            fontSize: '20px', fill: '#aaddff',
+            stroke: '#000', strokeThickness: 1, resolution: this.dpr
         }).setOrigin(0.5).setDepth(1);
 
         // HTML input for name entry
@@ -110,18 +110,18 @@ export class GameOver extends Phaser.Scene {
         if (names.length <= 1) return;
 
         this.add.text(cx, y, 'or pick a name:', {
-            fontSize: '13px', fill: '#668899',
-            resolution: Math.max(window.devicePixelRatio || 1, 2)
+            fontSize: '15px', fill: '#668899',
+            resolution: this.dpr
         }).setOrigin(0.5).setDepth(1);
 
         const chipSpacing = 90;
         const chipStartX = cx - ((names.length - 1) * chipSpacing / 2);
         names.forEach((name, i) => {
             const chipX = chipStartX + i * chipSpacing;
-            const chip = this.add.text(chipX, y + 22, name, {
-                fontSize: '14px', fill: '#44aadd', backgroundColor: '#1a2a3a',
+            const chip = this.add.text(chipX, y + 24, name, {
+                fontSize: '16px', fill: '#44aadd', backgroundColor: '#1a2a3a',
                 padding: { x: 8, y: 4 },
-                resolution: Math.max(window.devicePixelRatio || 1, 2)
+                resolution: this.dpr
             }).setOrigin(0.5).setDepth(1).setInteractive({ useHandCursor: true });
 
             chip.on('pointerdown', () => {
@@ -134,11 +134,10 @@ export class GameOver extends Phaser.Scene {
     }
 
     createButton(x, y, label, callback) {
-        const dpr = Math.max(window.devicePixelRatio || 1, 2);
         const btn = this.add.text(x, y, label, {
-            fontSize: '22px', fill: '#ffffff', backgroundColor: '#226644',
+            fontSize: '24px', fill: '#ffffff', backgroundColor: '#226644',
             padding: { x: 20, y: 10 }, fontStyle: 'bold',
-            stroke: '#000', strokeThickness: 1, resolution: dpr
+            stroke: '#000', strokeThickness: 1, resolution: this.dpr
         }).setOrigin(0.5).setDepth(1).setInteractive({ useHandCursor: true });
 
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#33aa66' }));
@@ -187,29 +186,29 @@ export class GameOver extends Phaser.Scene {
 
         const { width, height } = this.scale;
         const cx = width / 2;
-        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const dpr = this.dpr;
 
         // Background
         this.add.rectangle(cx, height / 2, width, height, 0x000000, 0.85).setDepth(0);
 
         // Title
         this.add.text(cx, 30, 'LEADERBOARD', {
-            fontSize: '36px', fill: '#ffdd44', fontStyle: 'bold',
+            fontSize: '40px', fill: '#ffdd44', fontStyle: 'bold',
             stroke: '#000', strokeThickness: 3, resolution: dpr
         }).setOrigin(0.5).setDepth(1);
 
         // Your score reminder
-        this.add.text(cx, 65, `Your score: ${this.finalScore}`, {
-            fontSize: '18px', fill: '#88bbdd',
+        this.add.text(cx, 68, `Your score: ${this.finalScore}`, {
+            fontSize: '20px', fill: '#88bbdd',
             stroke: '#000', strokeThickness: 1, resolution: dpr
         }).setOrigin(0.5).setDepth(1);
 
         // Table header
-        const tableY = 95;
-        const rowH = 32;
+        const tableY = 100;
+        const rowH = 36;
         const col = { rank: cx - 130, name: cx - 80, score: cx + 60, flag: cx + 130 };
 
-        const headerStyle = { fontSize: '14px', fill: '#668899', fontStyle: 'bold', resolution: dpr };
+        const headerStyle = { fontSize: '16px', fill: '#668899', fontStyle: 'bold', resolution: dpr };
         this.add.text(col.rank, tableY, '#', headerStyle).setOrigin(0.5).setDepth(1);
         this.add.text(col.name, tableY, 'NAME', headerStyle).setOrigin(0, 0.5).setDepth(1);
         this.add.text(col.score, tableY, 'SCORE', headerStyle).setOrigin(0.5).setDepth(1);
@@ -218,11 +217,11 @@ export class GameOver extends Phaser.Scene {
         // Divider line
         const g = this.add.graphics().setDepth(1);
         g.lineStyle(1, 0x335577, 0.6);
-        g.lineBetween(cx - 150, tableY + 12, cx + 150, tableY + 12);
+        g.lineBetween(cx - 150, tableY + 14, cx + 150, tableY + 14);
 
         // Rows
         scores.forEach((entry, i) => {
-            const y = tableY + 28 + i * rowH;
+            const y = tableY + 32 + i * rowH;
             const isPlayer = entry.name === playerName;
             const nameColor = isPlayer ? '#ffdd44' : '#ffffff';
             const scoreColor = isPlayer ? '#ffdd44' : '#aaddff';
@@ -235,7 +234,7 @@ export class GameOver extends Phaser.Scene {
             }
 
             const rowStyle = (color) => ({
-                fontSize: '16px', fill: color,
+                fontSize: '19px', fill: color,
                 fontStyle: isPlayer ? 'bold' : 'normal',
                 stroke: '#000', strokeThickness: 1, resolution: dpr
             });
@@ -243,17 +242,17 @@ export class GameOver extends Phaser.Scene {
             this.add.text(col.rank, y, `${entry.rank}`, rowStyle(rankColor)).setOrigin(0.5).setDepth(2);
             this.add.text(col.name, y, entry.name, rowStyle(nameColor)).setOrigin(0, 0.5).setDepth(2);
             this.add.text(col.score, y, `${entry.score}`, rowStyle(scoreColor)).setOrigin(0.5).setDepth(2);
-            this.add.text(col.flag, y, entry.flag, { fontSize: '18px', resolution: dpr }).setOrigin(0.5).setDepth(2);
+            this.add.text(col.flag, y, entry.flag, { fontSize: '22px', resolution: dpr }).setOrigin(0.5).setDepth(2);
         });
 
         if (scores.length === 0) {
             this.add.text(cx, tableY + 60, 'No scores yet - you could be first!', {
-                fontSize: '16px', fill: '#668899', resolution: dpr
+                fontSize: '18px', fill: '#668899', resolution: dpr
             }).setOrigin(0.5).setDepth(1);
         }
 
         // Play Again button
-        const btnY = Math.min(tableY + 40 + scores.length * rowH + 20, height - 50);
+        const btnY = Math.min(tableY + 44 + scores.length * rowH + 20, height - 50);
         this.createButton(cx, btnY, 'PLAY AGAIN', () => {
             this.scene.stop();
             this.scene.get('Game').scene.restart();
