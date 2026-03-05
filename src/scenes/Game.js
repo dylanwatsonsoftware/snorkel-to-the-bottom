@@ -265,22 +265,25 @@ export class Game extends Phaser.Scene {
 
     handleSwordOverlaps() {
         if (!this.player.isSwinging) return;
-        const wm = this.worldManager;
 
-        this.physics.overlap(this.player.sword, wm.pirates, (s, pirate) => {
-            if (pirate.getData('dying')) return;
-            pirate.setData('dying', true);
-            pirate.body.setVelocity(0, 0);
-            this.effectsManager.playDeathAnimation(pirate);
-            this.score += SCORING.PIRATE_SCORE;
-        });
-        this.physics.overlap(this.player.sword, wm.swordfishGroup, (s, fish) => {
-            if (fish.getData('dying')) return;
-            fish.setData('dying', true);
-            fish.body.setVelocity(0, 0);
-            this.effectsManager.playDeathAnimation(fish);
-            this.score += SCORING.SWORDFISH_SCORE;
-        });
+        const sx = this.player.sword.x;
+        const sy = this.player.sword.y;
+        const hitRange = 70 * 70;
+
+        const checkHit = (enemy, score) => {
+            if (enemy.getData('dying')) return;
+            const dx = enemy.x - sx;
+            const dy = enemy.y - sy;
+            if (dx * dx + dy * dy < hitRange) {
+                enemy.setData('dying', true);
+                enemy.body.setVelocity(0, 0);
+                this.effectsManager.playDeathAnimation(enemy);
+                this.score += score;
+            }
+        };
+
+        this.worldManager.pirates.getChildren().forEach(p => checkHit(p, SCORING.PIRATE_SCORE));
+        this.worldManager.swordfishGroup.getChildren().forEach(f => checkHit(f, SCORING.SWORDFISH_SCORE));
     }
 
     fireCannonball() {

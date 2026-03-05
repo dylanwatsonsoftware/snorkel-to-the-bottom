@@ -53,8 +53,8 @@ const makeScene = () => {
         const stub = {};
         const chain = () => stub;
         ['setOrigin', 'setX', 'setY', 'setScale', 'setDepth', 'setAlpha', 'setScrollFactor',
-            'setInteractive', 'setPosition', 'setVisible', 'setTint', 'on', 'fillStyle',
-            'fillCircle', 'generateTexture'].forEach(k => { stub[k] = vi.fn(chain); });
+            'setInteractive', 'setPosition', 'setVisible', 'setTint', 'setAngle', 'setFlipX',
+            'on', 'fillStyle', 'fillCircle', 'generateTexture'].forEach(k => { stub[k] = vi.fn(chain); });
         stub.createBitmapMask = vi.fn(() => ({ invertAlpha: false }));
         return stub;
     };
@@ -76,6 +76,7 @@ const makeScene = () => {
         make: {
             rectangle: vi.fn(() => makeRect()),
             graphics: vi.fn(() => makeRect()),
+            image: vi.fn(() => makeStub()),
         },
         tweens,
         time: { now: 0 },

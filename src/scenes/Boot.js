@@ -81,6 +81,55 @@ export class Boot extends Phaser.Scene {
         ps.generateTexture('pirateship', 70, 50);
         ps.destroy();
 
+        // Cutlass sword
+        const sw = this.add.graphics();
+        // Handle grip
+        sw.fillStyle(0x6b3a2a, 1);
+        sw.fillRect(2, 8, 13, 8);
+        // Leather wrapping
+        sw.fillStyle(0x4a2518, 0.7);
+        sw.fillRect(4, 8, 2, 8);
+        sw.fillRect(8, 8, 2, 8);
+        sw.fillRect(12, 8, 2, 8);
+        // Pommel
+        sw.fillStyle(0xdaa520, 1);
+        sw.fillCircle(3, 12, 4);
+        // Guard (curved crossguard)
+        sw.fillStyle(0xdaa520, 1);
+        sw.fillEllipse(16, 12, 5, 18);
+        // Blade body (curved cutlass shape)
+        sw.fillStyle(0xb8b8b8, 1);
+        sw.beginPath();
+        sw.moveTo(18, 7);
+        sw.lineTo(45, 4);
+        sw.lineTo(70, 3);
+        sw.lineTo(88, 6);
+        sw.lineTo(95, 10);
+        sw.lineTo(88, 13);
+        sw.lineTo(70, 16);
+        sw.lineTo(45, 17);
+        sw.lineTo(18, 16);
+        sw.closePath();
+        sw.fill();
+        // Edge highlight (top of blade)
+        sw.lineStyle(1.5, 0xe0e0e0, 0.8);
+        sw.beginPath();
+        sw.moveTo(20, 7);
+        sw.lineTo(45, 4);
+        sw.lineTo(70, 3);
+        sw.lineTo(88, 6);
+        sw.lineTo(95, 10);
+        sw.stroke();
+        // Fuller groove
+        sw.lineStyle(1, 0x888888, 0.5);
+        sw.beginPath();
+        sw.moveTo(22, 11);
+        sw.lineTo(55, 9);
+        sw.lineTo(78, 8);
+        sw.stroke();
+        sw.generateTexture('cutlass', 100, 24);
+        sw.destroy();
+
         // Cloud
         const cl = this.add.graphics();
         cl.fillStyle(0xffffff, 0.8);

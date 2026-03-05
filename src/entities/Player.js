@@ -18,20 +18,10 @@ export class Player extends Phaser.GameObjects.Sprite {
     }
 
     setupSword() {
-        this.sword = this.scene.add.container(0, 0).setAlpha(0).setDepth(10);
-
-        const handle = this.scene.add.rectangle(0, 0, 12, 6, 0x333333).setOrigin(0.5, 0.5);
-        const guard = this.scene.add.circle(5, 0, 8, 0xffd700, 0.8);
-        const hilt = this.scene.add.rectangle(8, 0, 4, 18, 0x8b4513).setOrigin(0.5, 0.5);
-        const blade = this.scene.add.rectangle(10, 0, 85, 8, 0xeeeeee).setOrigin(0, 0.5);
-
-        this.sword.add([handle, guard, hilt, blade]);
-
-        this.scene.physics.add.existing(this.sword);
-        this.sword.body.setSize(120, 120);
-        this.sword.body.setOffset(-60, -60);
-        this.sword.body.setAllowGravity(false);
-        this.sword.body.setImmovable(true);
+        this.sword = this.scene.add.image(0, 0, 'cutlass')
+            .setOrigin(0.03, 0.5)
+            .setAlpha(0)
+            .setDepth(10);
     }
 
     dive(onComplete) {
@@ -96,9 +86,9 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
 
         if (this.isSwinging) {
-            const offsetX = this.swingFacingLeft ? -20 : 20;
+            const offsetX = this.swingFacingLeft ? -35 : 35;
             this.sword.x = this.x + offsetX;
-            this.sword.y = this.y + 5;
+            this.sword.y = this.y;
         }
     }
 
@@ -108,19 +98,15 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.swingFacingLeft = this.flipX;
 
         this.sword.setAlpha(1);
-        const offsetX = this.swingFacingLeft ? -20 : 20;
-        this.sword.x = this.x + offsetX;
-        this.sword.y = this.y + 5;
+        this.sword.x = this.x + (this.swingFacingLeft ? -35 : 35);
+        this.sword.y = this.y;
 
-        const startAngle = this.swingFacingLeft ? 270 : -90;
-        const endAngle = this.swingFacingLeft ? 90 : 90;
-
-        this.sword.setAngle(startAngle);
-        this.sword.setScale(this.swingFacingLeft ? -1 : 1, 1);
+        this.sword.setAngle(-90);
+        this.sword.setFlipX(this.swingFacingLeft);
 
         this.scene.tweens.add({
             targets: this.sword,
-            angle: endAngle,
+            angle: 90,
             duration: 250,
             ease: 'Power2',
             onComplete: () => {
