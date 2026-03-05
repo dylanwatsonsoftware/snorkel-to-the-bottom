@@ -14,6 +14,8 @@ export class Boat extends Phaser.GameObjects.Sprite {
     update(isDiving, moveX, speed) {
         if (!isDiving) {
             this.body.setVelocityX(moveX * speed);
+            if (moveX < 0) this.setFlipX(true);
+            else if (moveX > 0) this.setFlipX(false);
         } else {
             this.body.setVelocityX(0);
         }

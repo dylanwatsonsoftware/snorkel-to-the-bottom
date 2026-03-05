@@ -27,6 +27,7 @@ export class WorldManager {
         this.scene.time.addEvent({ delay: 5000, callback: this.scene.spawnAirBubble, callbackScope: this.scene, loop: true });
         this.scene.time.addEvent({ delay: 7000, callback: this.scene.spawnPirate, callbackScope: this.scene, loop: true });
         this.scene.time.addEvent({ delay: 10000, callback: this.scene.spawnSwordfish, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 8000, callback: this.scene.spawnPirateShip, callbackScope: this.scene, loop: true });
         this.scene.time.addEvent({ delay: 15000, callback: this.scene.spawnMermaid, callbackScope: this.scene, loop: true });
     }
 }
