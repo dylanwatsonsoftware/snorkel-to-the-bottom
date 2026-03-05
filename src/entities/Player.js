@@ -20,16 +20,14 @@ export class Player extends Phaser.GameObjects.Sprite {
     setupSword() {
         this.sword = this.scene.add.container(0, 0).setAlpha(0).setDepth(10);
 
-        // Massive blade for huge reach
-        const blade = this.scene.add.rectangle(10, 0, 85, 8, 0xeeeeee).setOrigin(0, 0.5);
-        const hilt = this.scene.add.rectangle(8, 0, 4, 18, 0x8b4513).setOrigin(0.5, 0.5);
-        const guard = this.scene.make.graphics().fillStyle(0xffd700, 0.8).fillCircle(5, 0, 8);
         const handle = this.scene.add.rectangle(0, 0, 12, 6, 0x333333).setOrigin(0.5, 0.5);
+        const guard = this.scene.add.circle(5, 0, 8, 0xffd700, 0.8);
+        const hilt = this.scene.add.rectangle(8, 0, 4, 18, 0x8b4513).setOrigin(0.5, 0.5);
+        const blade = this.scene.add.rectangle(10, 0, 85, 8, 0xeeeeee).setOrigin(0, 0.5);
 
-        this.sword.add([blade, guard, hilt, handle]);
+        this.sword.add([handle, guard, hilt, blade]);
 
         this.scene.physics.add.existing(this.sword);
-        // Massive hitbox to match the huge sweep
         this.sword.body.setSize(120, 120);
         this.sword.body.setAllowGravity(false);
         this.sword.body.setImmovable(true);
