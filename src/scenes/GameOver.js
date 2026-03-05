@@ -46,12 +46,12 @@ export class GameOver extends Phaser.Scene {
         // HTML input for name entry
         this.createNameInput(cx, 160);
 
-        // Recent names as clickable chips
-        const hasRecent = getRecentNames().length > 0;
-        this.createRecentNameChips(cx, 200);
+        // Recent names as clickable chips (only show if 2+ names to pick from)
+        const showRecent = getRecentNames().length > 1;
+        if (showRecent) this.createRecentNameChips(cx, 210);
 
         // Submit button (push down if recent names are shown)
-        const submitY = hasRecent ? 265 : 215;
+        const submitY = showRecent ? 280 : 215;
         this.submitBtn = this.createButton(cx, submitY, 'SUBMIT SCORE', () => this.onSubmit());
 
         // Container for leaderboard (hidden until submit)
@@ -107,17 +107,18 @@ export class GameOver extends Phaser.Scene {
 
     createRecentNameChips(cx, y) {
         const names = getRecentNames();
-        if (names.length === 0) return;
+        if (names.length <= 1) return;
 
-        this.add.text(cx, y - 2, 'Recent:', {
+        this.add.text(cx, y, 'or pick a name:', {
             fontSize: '13px', fill: '#668899',
             resolution: Math.max(window.devicePixelRatio || 1, 2)
         }).setOrigin(0.5).setDepth(1);
 
-        const chipStartX = cx - ((names.length - 1) * 40);
+        const chipSpacing = 90;
+        const chipStartX = cx - ((names.length - 1) * chipSpacing / 2);
         names.forEach((name, i) => {
-            const chipX = chipStartX + i * 80;
-            const chip = this.add.text(chipX, y + 18, name, {
+            const chipX = chipStartX + i * chipSpacing;
+            const chip = this.add.text(chipX, y + 22, name, {
                 fontSize: '14px', fill: '#44aadd', backgroundColor: '#1a2a3a',
                 padding: { x: 8, y: 4 },
                 resolution: Math.max(window.devicePixelRatio || 1, 2)

@@ -1,7 +1,7 @@
 const DREAMLO_BASE = 'http://dreamlo.com/lb';
 const DREAMLO_KEY = 'Zk9lKzzIkkW5L3fFVzTysQpEM0ihJEWki9toMiUZwoVg';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     const { action } = req.query;
 
     let url;
