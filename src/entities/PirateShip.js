@@ -10,8 +10,8 @@ export class PirateShip extends Phaser.GameObjects.Sprite {
         this.setScale(0.8);
         this.body.setAllowGravity(false);
         this.body.setImmovable(true);
-        this.body.setSize(this.width * 0.7, this.height * 0.8);
-        this.body.setOffset(this.width * 0.15, this.height * 0.1);
+        this.body.setSize(this.width * 0.7, this.height);
+        this.body.setOffset(this.width * 0.15, 0);
 
         this.scene = scene;
         this.hp = COMBAT.PIRATE_SHIP_HP;
