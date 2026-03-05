@@ -1,3 +1,7 @@
+// In production (HTTPS), route through our Vercel serverless proxy to avoid
+// mixed-content blocks (dreamlo free tier is HTTP-only).
+// In dev (HTTP), call dreamlo directly.
+const USE_PROXY = window.location.protocol === 'https:';
 const DREAMLO_BASE = 'http://dreamlo.com/lb';
 const DREAMLO_KEY = 'Zk9lKzzIkkW5L3fFVzTysQpEM0ihJEWki9toMiUZwoVg';
 
@@ -71,16 +75,25 @@ export function getCountryFlag() {
 }
 
 export async function submitScore(name, score, flag) {
-    const safeName = encodeURIComponent(name.replace(/[|/\\]/g, ''));
-    const url = `${DREAMLO_BASE}/${DREAMLO_KEY}/add/${safeName}/${score}/0/${encodeURIComponent(flag)}`;
-    await fetch(url);
+    if (USE_PROXY) {
+        const params = new URLSearchParams({ action: 'add', name, score, flag });
+        await fetch(`/api/leaderboard?${params}`);
+    } else {
+        const safeName = encodeURIComponent(name.replace(/[|/\\]/g, ''));
+        await fetch(`${DREAMLO_BASE}/${DREAMLO_KEY}/add/${safeName}/${score}/0/${encodeURIComponent(flag)}`);
+    }
 }
 
 export async function getTopScores(limit = 10) {
-    const url = `${DREAMLO_BASE}/${DREAMLO_KEY}/json/${limit}`;
     try {
-        const res = await fetch(url);
-        const data = await res.json();
+        let data;
+        if (USE_PROXY) {
+            const res = await fetch(`/api/leaderboard?action=get&limit=${limit}`);
+            data = await res.json();
+        } else {
+            const res = await fetch(`${DREAMLO_BASE}/${DREAMLO_KEY}/json/${limit}`);
+            data = await res.json();
+        }
         const lb = data?.dreamlo?.leaderboard;
         if (!lb || !lb.entry) return [];
         // Single entry comes as object, multiple as array
