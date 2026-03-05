@@ -118,7 +118,7 @@ export class UIManager {
             .on('pointerup', () => this.mobileInputs.slash = false)
             .on('pointerout', () => this.mobileInputs.slash = false);
 
-        this.scene.add.text(fireX, fireY, 'SLASH', { fontSize: '24px', fill: '#fff' })
+        this.actionBtnText = this.scene.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(101);
@@ -146,6 +146,10 @@ export class UIManager {
         this.joystick.distance = 0;
         this.joystick.pointer = null;
         this.joystick.thumb.setPosition(this.joystick.base.x, this.joystick.base.y);
+    }
+
+    setActionLabel(label) {
+        if (this.actionBtnText) this.actionBtnText.setText(label);
     }
 
     getMovement() {

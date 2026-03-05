@@ -154,6 +154,7 @@ export class Game extends Phaser.Scene {
             this.targetZoom = 0.7;
             this.cameras.main.startFollow(this.boat, true, 0.1, 0.1);
             this.player.setVisible(true);
+            this.uiManager.setActionLabel('FIRE');
         }
         this.wasDiving = isDiving;
 
@@ -163,6 +164,7 @@ export class Game extends Phaser.Scene {
                 this.gameMode = 'diving';
                 this.targetZoom = 1.0;
                 this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+                this.uiManager.setActionLabel('SLASH');
                 this.player.dive(() => {
                     this.createSplash(this.player.x, 300);
                 });
