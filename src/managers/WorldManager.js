@@ -129,8 +129,8 @@ export class WorldManager {
         const y = Phaser.Math.Between(Math.max(WORLD.SPAWN_MIN_Y, cam.worldView.top), Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
         const safeY = (Math.abs(y - this.scene.player.y) < 100) ? y + 200 : y;
         const pirate = new Pirate(this.scene, x, Math.min(WORLD.SPAWN_MAX_Y, safeY));
-        pirate.setSpeed(this.scene.difficulty);
         this.pirates.add(pirate);
+        pirate.setSpeed(this.scene.difficulty);
     }
 
     spawnSwordfish() {
