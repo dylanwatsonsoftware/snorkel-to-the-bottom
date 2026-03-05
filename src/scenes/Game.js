@@ -120,11 +120,9 @@ export class Game extends Phaser.Scene {
         }
         this.wasDiving = isDiving;
 
-        // Handle Dive Trigger — DOWN arrow or mobile dive button only
+        // Handle Dive Trigger — any downward input (keyboard, joystick, or mobile dive button)
         if (!isDiving && !this.player.isDivingInitiated) {
-            if (Phaser.Input.Keyboard.JustDown(this.cursors.down) ||
-                this.uiManager.mobileInputs.dive) {
-
+            if (this.cursors.down.isDown || moveY > 0) {
                 this.player.dive(() => {
                     // Splash effect on water entry
                     this.createSplash(this.player.x, 300);
