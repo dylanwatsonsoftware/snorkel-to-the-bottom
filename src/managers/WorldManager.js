@@ -6,9 +6,9 @@ export class WorldManager {
     }
 
     generateWorldItems() {
-        const treasureCount = 25;
-        const crystalCount = 15;
-        const scubaCount = 8;
+        const treasureCount = 12;
+        const crystalCount = 6;
+        const scubaCount = 4;
 
         for (let i = 0; i < treasureCount; i++) {
             this.scene.spawnTreasure();
@@ -24,10 +24,10 @@ export class WorldManager {
     }
 
     setupPeriodicSpawning() {
-        this.scene.time.addEvent({ delay: 5000, callback: this.scene.spawnAirBubble, callbackScope: this.scene, loop: true });
-        this.scene.time.addEvent({ delay: 7000, callback: this.scene.spawnPirate, callbackScope: this.scene, loop: true });
-        this.scene.time.addEvent({ delay: 10000, callback: this.scene.spawnSwordfish, callbackScope: this.scene, loop: true });
-        this.scene.time.addEvent({ delay: 8000, callback: this.scene.spawnPirateShip, callbackScope: this.scene, loop: true });
-        this.scene.time.addEvent({ delay: 15000, callback: this.scene.spawnMermaid, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 8000, callback: this.scene.spawnAirBubble, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 12000, callback: this.scene.spawnPirate, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 15000, callback: this.scene.spawnSwordfish, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 12000, callback: this.scene.spawnPirateShip, callbackScope: this.scene, loop: true });
+        this.scene.time.addEvent({ delay: 20000, callback: this.scene.spawnMermaid, callbackScope: this.scene, loop: true });
     }
 }
