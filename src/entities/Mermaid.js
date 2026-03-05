@@ -6,7 +6,7 @@ export class Mermaid extends Phaser.GameObjects.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-        this.setScale(0.3);
+        this.setScale(0.45);
         this.body.setSize(this.width * 0.5, this.height * 0.5);
         this.body.setOffset(this.width * 0.25, this.height * 0.25);
         this.body.setAllowGravity(false);
