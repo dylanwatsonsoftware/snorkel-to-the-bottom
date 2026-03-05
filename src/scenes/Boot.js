@@ -81,6 +81,18 @@ export class Boot extends Phaser.Scene {
         ps.generateTexture('pirateship', 70, 50);
         ps.destroy();
 
+        // Cloud
+        const cl = this.add.graphics();
+        cl.fillStyle(0xffffff, 0.8);
+        cl.fillEllipse(25, 18, 30, 16);
+        cl.fillEllipse(45, 15, 28, 18);
+        cl.fillEllipse(65, 18, 32, 14);
+        cl.fillStyle(0xffffff, 0.6);
+        cl.fillEllipse(35, 22, 40, 12);
+        cl.fillEllipse(55, 22, 36, 12);
+        cl.generateTexture('cloud', 90, 34);
+        cl.destroy();
+
         // Upgrade crate
         const uc = this.add.graphics();
         uc.fillStyle(0xcc8833, 1);

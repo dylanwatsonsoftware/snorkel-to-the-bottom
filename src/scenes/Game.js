@@ -31,7 +31,26 @@ export class Game extends Phaser.Scene {
 
         // Background
         const bgWidth = Math.max(width * 3, 2400);
-        this.add.rectangle(width / 2, 0, bgWidth, WORLD.WATERLINE_Y, 0x87ceeb).setOrigin(0.5, 0).setDepth(-2);
+        this.add.rectangle(width / 2, 0, bgWidth, WORLD.WATERLINE_Y, 0x87ceeb).setOrigin(0.5, 0).setDepth(-3);
+
+        // Parallax sky layers
+        const cloudPositions = [
+            { x: 100, y: 80, s: 1.2 }, { x: 350, y: 50, s: 0.9 },
+            { x: 600, y: 90, s: 1.0 }, { x: 900, y: 60, s: 1.3 },
+            { x: 1200, y: 75, s: 1.1 }, { x: 1500, y: 45, s: 0.8 },
+            { x: 1800, y: 85, s: 1.0 }, { x: 2100, y: 55, s: 1.2 },
+        ];
+        // Far clouds — slow scroll
+        cloudPositions.forEach(({ x, y, s }) => {
+            this.add.image(x, y, 'cloud').setScale(s * 1.2).setAlpha(0.3)
+                .setScrollFactor(0.1, 1).setDepth(-2);
+        });
+        // Near clouds — faster scroll
+        cloudPositions.forEach(({ x, y, s }, i) => {
+            if (i % 2 === 0) return;
+            this.add.image(x + 150, y + 30, 'cloud').setScale(s * 0.8).setAlpha(0.6)
+                .setScrollFactor(0.3, 1).setDepth(-2);
+        });
 
         // Gradient underwater background
         const waterHeight = WORLD.DEPTH - WORLD.WATERLINE_Y;
