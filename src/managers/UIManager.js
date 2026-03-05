@@ -35,7 +35,7 @@ export class UIManager {
         this.depthText = this.scene.add.text(16, 128, 'Depth: 0m', uiStyle);
 
         const { width } = this.scene.scale;
-        this.healthText = this.scene.add.text(width - 16, 16, 'Health: ❤️❤️❤️', uiStyle)
+        this.healthText = this.scene.add.text(width - 16, 16, '❤️❤️❤️', uiStyle)
             .setOrigin(1, 0);
 
         this.uiContainer.add([
@@ -79,7 +79,7 @@ export class UIManager {
         this.crystalsText.setText(`Crystals: ${crystals}`);
 
         const hearts = '❤️'.repeat(Math.max(0, health));
-        this.healthText.setText(`Health: ${hearts}`);
+        this.healthText.setText(`${hearts}`);
 
         const currentDepth = Math.max(0, Math.floor((playerY - 300) / 10));
         this.depthText.setText(`Depth: ${currentDepth}m`);
