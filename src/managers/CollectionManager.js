@@ -56,8 +56,7 @@ export class CollectionManager {
             onComplete: () => heart.destroy()
         });
 
-        // Disable collision and swim away (cooldown re-enables after 5s)
-        if (m.body) m.body.enable = false;
+        // Swim away (cooldown flag prevents re-collection)
         m.swimAway();
     }
 

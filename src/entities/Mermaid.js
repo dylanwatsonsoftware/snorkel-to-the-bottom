@@ -44,7 +44,6 @@ export class Mermaid extends Phaser.GameObjects.Sprite {
                 ? Math.abs(this.swimVelocity / 1.5)
                 : -Math.abs(this.swimVelocity / 1.5);
             this.body.setVelocity(this.swimVelocity, 0);
-            if (this.body) this.body.enable = true;
         });
     }
 }
