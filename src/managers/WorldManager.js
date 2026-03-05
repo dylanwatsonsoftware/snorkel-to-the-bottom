@@ -4,6 +4,7 @@ import { PirateShip } from '../entities/PirateShip';
 import { Pirate } from '../entities/Pirate';
 import { AirBubble } from '../entities/AirBubble';
 import { WORLD, SPAWNING } from '../config/GameConfig';
+import { Mermaid } from '../entities/Mermaid';
 
 export class WorldManager {
     constructor(scene) {
@@ -89,7 +90,7 @@ export class WorldManager {
             if (!pos) return;
             x = pos.x; y = pos.y;
         }
-        const c = this.crystalsGroup.create(x, y, 'crystal').setScale(0.25);
+        const c = this.crystalsGroup.create(x, y, 'crystal').setScale(0.15);
         c.body.setSize(c.width * 0.4, c.height * 0.4);
         c.body.setOffset(c.width * 0.3, c.height * 0.3);
         c.body.setVelocityX(Phaser.Math.Between(-20, 20));
@@ -140,11 +141,8 @@ export class WorldManager {
         const x = side === 0 ? cam.worldView.right + 200 : cam.worldView.left - 200;
         const y = Phaser.Math.Between(Math.max(WORLD.SPAWN_MIN_Y, cam.worldView.top), Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
         const velX = side === 0 ? -100 : 100;
-        const m = this.mermaids.create(x, y, 'mermaid').setScale(0.3);
-        m.body.setSize(m.width * 0.5, m.height * 0.5);
-        m.body.setOffset(m.width * 0.25, m.height * 0.25);
-        m.body.setVelocityX(velX);
-        m.setFlipX(velX > 0);
+        const m = new Mermaid(this.scene, x, y, velX);
+        this.mermaids.add(m);
         if (Phaser.Math.Between(0, 1) === 1) this.spawnCrystal(x, y);
     }
 
@@ -164,7 +162,7 @@ export class WorldManager {
             const x = Phaser.Math.Between(50, worldWidth - 50);
             const y = Phaser.Math.Between(WORLD.SPAWN_MIN_Y, WORLD.SPAWN_MAX_Y);
             if (Phaser.Math.Distance.Between(x, y, this.scene.player.x, this.scene.player.y) < 300) { attempts++; continue; }
-            if (this.scene.physics.overlapCirc(x, y, 50).length === 0) return { x, y };
+            if (this.scene.physics.overlapCirc(x, y, SPAWNING.MIN_SPACING).length === 0) return { x, y };
             attempts++;
         }
         return null;

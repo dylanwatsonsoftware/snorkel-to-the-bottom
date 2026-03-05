@@ -10,6 +10,10 @@ import { WORLD, PLAYER, CAMERA, COMBAT, SCORING, UPGRADES } from '../config/Game
 export class Game extends Phaser.Scene {
     constructor() {
         super('Game');
+    }
+
+    create() {
+        // Reset all state (constructor only runs once, not on restart)
         this.air = PLAYER.MAX_AIR;
         this.score = 0;
         this.money = 0;
@@ -20,9 +24,8 @@ export class Game extends Phaser.Scene {
         this.targetZoom = CAMERA.SURFACE_ZOOM;
         this.upgrades = { airCapacity: 0, swimSpeed: 0, swordReach: 0 };
         this.scoreMultiplier = 1;
-    }
+        this.wasDiving = false;
 
-    create() {
         const { width } = this.scale;
         this.physics.world.setBounds(0, 0, Math.max(width, WORLD.MIN_WIDTH), WORLD.DEPTH);
 
@@ -174,6 +177,9 @@ export class Game extends Phaser.Scene {
             this.player.setVisible(true);
             this.uiManager.setActionLabel('FIRE');
             this.soundManager.play('splash');
+            // Despawn underwater enemies when resurfacing
+            this.worldManager.swordfishGroup.clear(true, true);
+            this.worldManager.pirates.clear(true, true);
         }
         this.wasDiving = isDiving;
 

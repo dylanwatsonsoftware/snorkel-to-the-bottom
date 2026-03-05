@@ -7,7 +7,7 @@ export class Swordfish extends Phaser.GameObjects.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-        this.setScale(0.8);
+        this.setScale(1.2);
         this.body.setAllowGravity(false);
         this.body.setSize(this.width * 0.6, this.height * 0.4);
         this.body.setOffset(this.width * 0.2, this.height * 0.3);
