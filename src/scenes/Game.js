@@ -101,22 +101,28 @@ export class Game extends Phaser.Scene {
         const { width } = this.scale;
         const worldWidth = Math.max(width, 800);
 
-        // Create a full-screen black rectangle covering the dive area
-        // Starts at y=300 and extends to the bottom
-        this.lightingOverlay = this.add.rectangle(worldWidth / 2, 1650, worldWidth, 2700, 0x000000)
+        // Dark overlay covering the dive area
+        this.lightingOverlay = this.add.rectangle(worldWidth / 2, 1650, worldWidth * 3, 2700, 0x000000)
             .setOrigin(0.5, 0.5)
             .setAlpha(0)
             .setDepth(50);
 
-        // Flashlight Effect: Create a circle mask
+        // Soft radial gradient flashlight mask with fading edges
+        const maskSize = 300;
         const graphics = this.make.graphics({ add: false });
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(100, 100, 100); // 100px radius
-        graphics.generateTexture('flashlight-mask', 200, 200);
+        const steps = 30;
+        for (let i = steps; i >= 0; i--) {
+            const r = (maskSize / 2) * (i / steps);
+            const alpha = i / steps; // Outer rings are more opaque → blocks more light
+            graphics.fillStyle(0xffffff, 1 - alpha);
+            graphics.fillCircle(maskSize / 2, maskSize / 2, r);
+        }
+        graphics.generateTexture('flashlight-mask', maskSize, maskSize);
+        graphics.destroy();
 
         this.flashlightMaskImage = this.add.image(0, 0, 'flashlight-mask').setVisible(false);
         const mask = this.flashlightMaskImage.createBitmapMask();
-        mask.invertAlpha = true; // Make the circle a "hole" in the overlay
+        mask.invertAlpha = true;
         this.lightingOverlay.setMask(mask);
     }
 
