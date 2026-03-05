@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COMBAT } from '../config/GameConfig';
 
 export class Swordfish extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y) {
@@ -12,7 +13,7 @@ export class Swordfish extends Phaser.GameObjects.Sprite {
         this.body.setOffset(this.width * 0.2, this.height * 0.3);
 
         this.scene = scene;
-        this.speed = 120;
+        this.speed = COMBAT.SWORDFISH_SPEED;
     }
 
     update() {

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COMBAT } from '../config/GameConfig';
 
 export class PirateShip extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y) {
@@ -13,7 +14,15 @@ export class PirateShip extends Phaser.GameObjects.Sprite {
         this.body.setOffset(this.width * 0.15, this.height * 0.5);
 
         this.scene = scene;
-        this.hp = 3;
+        this.hp = COMBAT.PIRATE_SHIP_HP;
+    }
+
+    update(target, difficulty) {
+        if (this.getData('dying')) return;
+        const dx = target.x - this.x;
+        const speed = COMBAT.PIRATE_SHIP_SPEED * difficulty;
+        this.body.setVelocityX(dx > 0 ? speed : -speed);
+        this.setFlipX(dx < 0);
     }
 
     takeDamage() {

@@ -1,40 +1,34 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { WORLD, PLAYER, SCORING, UPGRADES, UPGRADE_TYPES, SPAWNING, CAMERA, COMBAT } from '../config/GameConfig';
 
 // ---------------------------------------------------------------------------
 // Game scene logic smoke tests
 //
-// We extract and replicate just the game-state logic from Game.js as plain
-// functions / objects so we can run end-to-end-ish tests without needing a
-// Phaser renderer. Each section references the exact method in Game.js it
-// mirrors so it's easy to keep them in sync.
+// We replicate game-state logic as plain functions/objects so we can run
+// tests without needing a Phaser renderer. Constants come from GameConfig.
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Shared factory: a minimal game-state object matching what Game.js stores
-// ---------------------------------------------------------------------------
 function makeGame(overrides = {}) {
     return {
-        air: 100,
+        air: PLAYER.MAX_AIR,
         score: 0,
         money: 0,
         crystals: 0,
         difficulty: 1,
         isGameOver: false,
-        player: { y: 400, health: 3, setTint: vi.fn() },
+        player: { y: 400, health: PLAYER.MAX_HEALTH, setTint: vi.fn() },
         physics: { pause: vi.fn() },
         soundManager: { play: vi.fn() },
         scene: { restart: vi.fn() },
         ...overrides,
 
-        // ── Game.depleteAir ─────────────────────────────────────────────────
         depleteAir() {
-            if (this.player.y > 300 && !this.isGameOver) {
-                this.air -= 2;
+            if (this.player.y > WORLD.WATERLINE_Y && !this.isGameOver) {
+                this.air -= PLAYER.AIR_DEPLETION;
                 if (this.air <= 0) this.gameOver();
             }
         },
 
-        // ── Game.gameOver ───────────────────────────────────────────────────
         gameOver() {
             if (this.isGameOver) return;
             this.isGameOver = true;
@@ -42,56 +36,89 @@ function makeGame(overrides = {}) {
             this.player.setTint(0xff0000);
         },
 
-        // ── Game.collectTreasure ────────────────────────────────────────────
         collectTreasure(p, t) {
             t.destroy();
-            this.money += 200;
-            this.score += 500;
+            this.money += SCORING.TREASURE_MONEY;
+            this.score += SCORING.TREASURE_SCORE;
             this.soundManager.play('collect');
         },
 
-        // ── Game.collectAir ─────────────────────────────────────────────────
         collectAir(p, b) {
             const v = b.getData('visual'); if (v) v.destroy(); b.destroy();
-            this.air = Math.min(100, this.air + 5);
+            this.air = Math.min(PLAYER.MAX_AIR, this.air + PLAYER.AIR_BUBBLE_RESTORE);
             this.soundManager.play('bubble');
         },
 
-        // ── Game.collectScuba ────────────────────────────────────────────────
         collectScuba(p, t) {
             t.destroy();
-            this.air = 100;
-            this.score += 100;
+            this.air = PLAYER.MAX_AIR;
+            this.score += SCORING.SCUBA_SCORE;
             this.soundManager.play('scuba');
         },
 
-        // ── Game.collectMermaid ──────────────────────────────────────────────
         collectMermaid(p, m) {
             m.destroy();
             this.crystals += 1;
-            this.money += 100;
-            this.score += 500;
-            p.health = Math.min(3, p.health + 1);
+            this.money += SCORING.MERMAID_MONEY;
+            this.score += SCORING.MERMAID_SCORE;
+            p.health = Math.min(PLAYER.MAX_HEALTH, p.health + 1);
             this.soundManager.play('mermaid');
         },
 
-        // ── Game.collectCrystal ──────────────────────────────────────────────
         collectCrystal(p, c) {
             c.destroy();
             this.crystals += 1;
-            this.score += 1000;
+            this.score += SCORING.CRYSTAL_SCORE;
             this.soundManager.play('crystal');
         },
 
-        // ── Game.updateLighting (alpha formula only) ─────────────────────────
         calcLightingAlpha(playerY) {
-            return Math.max(0, Math.min(0.8, (playerY - 300) / 2700));
+            return Math.max(0, Math.min(0.8, (playerY - WORLD.WATERLINE_Y) / (WORLD.DEPTH - WORLD.WATERLINE_Y)));
         },
     };
 }
 
-// Helper stub for a collectible game object
 const makeItem = () => ({ destroy: vi.fn(), getData: vi.fn(() => null) });
+
+// ---------------------------------------------------------------------------
+// GameConfig
+// ---------------------------------------------------------------------------
+describe('GameConfig', () => {
+    it('has consistent world boundaries', () => {
+        expect(WORLD.WATERLINE_Y).toBeLessThan(WORLD.DEPTH);
+        expect(WORLD.SPAWN_MIN_Y).toBeGreaterThan(WORLD.WATERLINE_Y);
+        expect(WORLD.SPAWN_MAX_Y).toBeLessThan(WORLD.DEPTH);
+    });
+
+    it('has valid upgrade types', () => {
+        expect(UPGRADE_TYPES.length).toBeGreaterThan(0);
+        UPGRADE_TYPES.forEach(t => {
+            expect(t).toHaveProperty('key');
+            expect(t).toHaveProperty('label');
+            expect(t).toHaveProperty('color');
+            expect(t).toHaveProperty('permanent');
+        });
+    });
+
+    it('has both permanent and temporary upgrades', () => {
+        const permanent = UPGRADE_TYPES.filter(t => t.permanent);
+        const temporary = UPGRADE_TYPES.filter(t => !t.permanent);
+        expect(permanent.length).toBeGreaterThan(0);
+        expect(temporary.length).toBeGreaterThan(0);
+    });
+
+    it('has spawn intervals for all entity types', () => {
+        expect(SPAWNING.INTERVALS).toHaveProperty('airBubble');
+        expect(SPAWNING.INTERVALS).toHaveProperty('pirate');
+        expect(SPAWNING.INTERVALS).toHaveProperty('swordfish');
+        expect(SPAWNING.INTERVALS).toHaveProperty('pirateShip');
+        expect(SPAWNING.INTERVALS).toHaveProperty('mermaid');
+    });
+
+    it('has camera zoom values where surface < diving', () => {
+        expect(CAMERA.SURFACE_ZOOM).toBeLessThan(CAMERA.DIVING_ZOOM);
+    });
+});
 
 // ---------------------------------------------------------------------------
 // depleteAir
@@ -100,26 +127,26 @@ describe('Game – depleteAir', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('reduces air by 2 when player is underwater', () => {
+    it('reduces air by configured amount when player is underwater', () => {
         game.player.y = 400;
         game.depleteAir();
-        expect(game.air).toBe(98);
+        expect(game.air).toBe(PLAYER.MAX_AIR - PLAYER.AIR_DEPLETION);
     });
 
-    it('does NOT deplete air when player is on the surface (y <= 300)', () => {
-        game.player.y = 300;
+    it('does NOT deplete air when player is on the surface', () => {
+        game.player.y = WORLD.WATERLINE_Y;
         game.depleteAir();
-        expect(game.air).toBe(100);
+        expect(game.air).toBe(PLAYER.MAX_AIR);
     });
 
     it('does NOT deplete air when game is over', () => {
         game.isGameOver = true;
         game.depleteAir();
-        expect(game.air).toBe(100);
+        expect(game.air).toBe(PLAYER.MAX_AIR);
     });
 
     it('triggers gameOver when air reaches 0', () => {
-        game.air = 2;
+        game.air = PLAYER.AIR_DEPLETION;
         game.depleteAir();
         expect(game.air).toBe(0);
         expect(game.isGameOver).toBe(true);
@@ -168,11 +195,10 @@ describe('Game – collectTreasure', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('adds 200 money and 500 score', () => {
-        const item = makeItem();
-        game.collectTreasure(game.player, item);
-        expect(game.money).toBe(200);
-        expect(game.score).toBe(500);
+    it('adds correct money and score', () => {
+        game.collectTreasure(game.player, makeItem());
+        expect(game.money).toBe(SCORING.TREASURE_MONEY);
+        expect(game.score).toBe(SCORING.TREASURE_SCORE);
     });
 
     it('destroys the treasure item', () => {
@@ -194,17 +220,16 @@ describe('Game – collectAir', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('adds 5 air', () => {
+    it('adds air bubble restore amount', () => {
         game.air = 80;
-        const bubble = makeItem();
-        game.collectAir(game.player, bubble);
-        expect(game.air).toBe(85);
+        game.collectAir(game.player, makeItem());
+        expect(game.air).toBe(80 + PLAYER.AIR_BUBBLE_RESTORE);
     });
 
-    it('clamps air to 100', () => {
-        game.air = 98;
+    it('clamps air to max', () => {
+        game.air = PLAYER.MAX_AIR - 1;
         game.collectAir(game.player, makeItem());
-        expect(game.air).toBe(100);
+        expect(game.air).toBe(PLAYER.MAX_AIR);
     });
 
     it('plays bubble sound', () => {
@@ -229,12 +254,12 @@ describe('Game – collectScuba', () => {
 
     it('restores air to full', () => {
         game.collectScuba(game.player, makeItem());
-        expect(game.air).toBe(100);
+        expect(game.air).toBe(PLAYER.MAX_AIR);
     });
 
-    it('adds 100 score', () => {
+    it('adds score', () => {
         game.collectScuba(game.player, makeItem());
-        expect(game.score).toBe(100);
+        expect(game.score).toBe(SCORING.SCUBA_SCORE);
     });
 
     it('plays scuba sound', () => {
@@ -250,11 +275,11 @@ describe('Game – collectMermaid', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('adds 1 crystal, 100 money, 500 score', () => {
+    it('adds crystal, money, and score', () => {
         game.collectMermaid(game.player, makeItem());
         expect(game.crystals).toBe(1);
-        expect(game.money).toBe(100);
-        expect(game.score).toBe(500);
+        expect(game.money).toBe(SCORING.MERMAID_MONEY);
+        expect(game.score).toBe(SCORING.MERMAID_SCORE);
     });
 
     it('heals player by 1', () => {
@@ -263,10 +288,10 @@ describe('Game – collectMermaid', () => {
         expect(game.player.health).toBe(3);
     });
 
-    it('caps player health at 3', () => {
-        game.player.health = 3;
+    it('caps player health at max', () => {
+        game.player.health = PLAYER.MAX_HEALTH;
         game.collectMermaid(game.player, makeItem());
-        expect(game.player.health).toBe(3);
+        expect(game.player.health).toBe(PLAYER.MAX_HEALTH);
     });
 
     it('plays mermaid sound', () => {
@@ -282,10 +307,10 @@ describe('Game – collectCrystal', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('adds 1 crystal and 1000 score', () => {
+    it('adds crystal and score', () => {
         game.collectCrystal(game.player, makeItem());
         expect(game.crystals).toBe(1);
-        expect(game.score).toBe(1000);
+        expect(game.score).toBe(SCORING.CRYSTAL_SCORE);
     });
 
     it('plays crystal sound', () => {
@@ -301,17 +326,17 @@ describe('Game – updateLighting alpha', () => {
     let game;
     beforeEach(() => { game = makeGame(); });
 
-    it('is 0 at the surface (y = 300)', () => {
-        expect(game.calcLightingAlpha(300)).toBe(0);
+    it('is 0 at the surface', () => {
+        expect(game.calcLightingAlpha(WORLD.WATERLINE_Y)).toBe(0);
     });
 
-    it('is 0 above the surface (y < 300)', () => {
+    it('is 0 above the surface', () => {
         expect(game.calcLightingAlpha(0)).toBe(0);
-        expect(game.calcLightingAlpha(299)).toBe(0);
+        expect(game.calcLightingAlpha(WORLD.WATERLINE_Y - 1)).toBe(0);
     });
 
-    it('reaches max alpha 0.8 at full depth (y = 3000)', () => {
-        expect(game.calcLightingAlpha(3000)).toBeCloseTo(0.8, 5);
+    it('reaches max alpha 0.8 at full depth', () => {
+        expect(game.calcLightingAlpha(WORLD.DEPTH)).toBeCloseTo(0.8, 5);
     });
 
     it('never exceeds 0.8 even at extreme depth', () => {
@@ -319,31 +344,29 @@ describe('Game – updateLighting alpha', () => {
     });
 
     it('is proportional between surface and max depth', () => {
-        // y=1650: (1650 - 300) / 2700 = 1350 / 2700 = 0.5
-        expect(game.calcLightingAlpha(1650)).toBeCloseTo(0.5, 5);
+        const midY = WORLD.WATERLINE_Y + (WORLD.DEPTH - WORLD.WATERLINE_Y) / 2;
+        expect(game.calcLightingAlpha(midY)).toBeCloseTo(0.5, 5);
     });
 });
 
 // ---------------------------------------------------------------------------
-// Cumulative stat smoke test — simulates a short dive session
+// Full session smoke test
 // ---------------------------------------------------------------------------
 describe('Game – full session smoke test', () => {
     it('collects items and depletes air correctly over a dive', () => {
         const game = makeGame();
-        game.player.y = 500; // underwater
+        game.player.y = 500;
 
-        // Collect a few items
-        game.collectTreasure(game.player, makeItem()); // +500 score, +200 money
-        game.collectCrystal(game.player, makeItem());  // +1000 score, +1 crystal
-        game.collectAir(game.player, makeItem());      // +5 air → still 100
+        game.collectTreasure(game.player, makeItem());
+        game.collectCrystal(game.player, makeItem());
+        game.collectAir(game.player, makeItem());
 
-        // Deplete air 10 times (−2 each = −20 total)
         for (let i = 0; i < 10; i++) game.depleteAir();
 
-        expect(game.score).toBe(1500);
-        expect(game.money).toBe(200);
+        expect(game.score).toBe(SCORING.TREASURE_SCORE + SCORING.CRYSTAL_SCORE);
+        expect(game.money).toBe(SCORING.TREASURE_MONEY);
         expect(game.crystals).toBe(1);
-        expect(game.air).toBe(80);
+        expect(game.air).toBe(PLAYER.MAX_AIR - 10 * PLAYER.AIR_DEPLETION);
         expect(game.isGameOver).toBe(false);
     });
 
@@ -351,7 +374,7 @@ describe('Game – full session smoke test', () => {
         const game = makeGame({ air: 10 });
         game.player.y = 500;
 
-        for (let i = 0; i < 6; i++) game.depleteAir(); // −12 air → 0 or below
+        for (let i = 0; i < 6; i++) game.depleteAir();
 
         expect(game.isGameOver).toBe(true);
     });
