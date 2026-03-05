@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { PLAYER } from '../config/GameConfig';
 
 export class UIManager {
     constructor(scene) {
@@ -9,143 +8,13 @@ export class UIManager {
     }
 
     create() {
-        // HUD container — counter-scaled each frame to negate camera zoom
-        this.uiContainer = this.scene.add.container(0, 0);
-        this.uiContainer.setScrollFactor(0);
-        this.uiContainer.setDepth(100);
-
         // Mobile controls container — stays in screen space, no zoom compensation
         this.mobileContainer = this.scene.add.container(0, 0);
         this.mobileContainer.setScrollFactor(0);
         this.mobileContainer.setDepth(100);
 
-        this.createHUD();
-
         this.scene.input.addPointer(2);
         this.setupMobileControls();
-    }
-
-    createHUD() {
-        const pad = 16;
-
-        // --- Left Panel: Semi-transparent background ---
-        const panelBg = this.scene.add.graphics();
-        panelBg.fillStyle(0x000011, 0.4);
-        panelBg.fillRoundedRect(pad - 8, pad - 6, 196, 100, 8);
-        panelBg.lineStyle(1, 0x335577, 0.5);
-        panelBg.strokeRoundedRect(pad - 8, pad - 6, 196, 100, 8);
-
-        // --- Air Bar ---
-        this.airBarWidth = 152;
-        const barH = 10;
-        const airY = pad + 8;
-
-        const airIcon = this.scene.add.image(pad + 8, airY, 'icon-bubble');
-
-        const airBarBg = this.scene.add.rectangle(pad + 26, airY, this.airBarWidth, barH, 0x112233)
-            .setOrigin(0, 0.5);
-        this.airBarFill = this.scene.add.rectangle(pad + 26, airY, this.airBarWidth, barH, 0x22aadd)
-            .setOrigin(0, 0.5);
-
-        const airBarFrame = this.scene.add.graphics();
-        airBarFrame.lineStyle(1, 0x4488aa, 0.8);
-        airBarFrame.strokeRect(pad + 25, airY - barH / 2 - 1, this.airBarWidth + 2, barH + 2);
-
-        // --- Stats Grid (2x2) with icons ---
-        const valStyle = { fontSize: '16px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 };
-        const iconOffY = 2;
-
-        const col1 = pad;
-        const col2 = pad + 98;
-        const row1 = airY + 16;
-        const row2 = row1 + 32;
-
-        const scoreIcon = this.scene.add.image(col1 + 8, row1 + iconOffY, 'icon-star');
-        this.scoreText = this.scene.add.text(col1 + 20, row1 - 6, '0', valStyle);
-
-        const goldIcon = this.scene.add.image(col2 + 8, row1 + iconOffY, 'icon-coin');
-        this.moneyText = this.scene.add.text(col2 + 20, row1 - 6, '$0',
-            { ...valStyle, fill: '#ffdd44' });
-
-        const crystalIcon = this.scene.add.image(col1 + 8, row2 + iconOffY, 'icon-crystal');
-        this.crystalsText = this.scene.add.text(col1 + 20, row2 - 6, '0',
-            { ...valStyle, fill: '#cc88ff' });
-
-        const depthIcon = this.scene.add.image(col2 + 8, row2 + iconOffY, 'icon-depth');
-        this.depthText = this.scene.add.text(col2 + 20, row2 - 6, '0m',
-            { ...valStyle, fill: '#66ddff' });
-
-        // --- Hearts (top-right) ---
-        const { width } = this.scene.scale;
-        this.hearts = [];
-        const maxHearts = Math.ceil(PLAYER.MAX_HEALTH / 2);
-        const heartSpacing = 26;
-        const heartsStartX = width - pad - maxHearts * heartSpacing + heartSpacing / 2;
-
-        // Subtle panel behind hearts
-        const heartPanelBg = this.scene.add.graphics();
-        heartPanelBg.fillStyle(0x110000, 0.35);
-        heartPanelBg.fillRoundedRect(
-            heartsStartX - 16, pad - 6,
-            maxHearts * heartSpacing + 18, 32, 8
-        );
-
-        for (let i = 0; i < maxHearts; i++) {
-            const heart = this.scene.add.image(
-                heartsStartX + i * heartSpacing, pad + 10, 'heart-full'
-            ).setScale(1.3);
-            this.hearts.push(heart);
-        }
-
-        // Add everything to HUD container
-        this.uiContainer.add([
-            panelBg,
-            airIcon, airBarBg, this.airBarFill, airBarFrame,
-            scoreIcon, this.scoreText,
-            goldIcon, this.moneyText,
-            crystalIcon, this.crystalsText,
-            depthIcon, this.depthText,
-            heartPanelBg, ...this.hearts
-        ]);
-    }
-
-    update(air, score, money, crystals, playerY, health) {
-        // Counter-scale HUD to negate camera zoom
-        const cam = this.scene.cameras.main;
-        const zoom = cam.zoom;
-        const centerX = cam.width / 2;
-        const centerY = cam.height / 2;
-        this.uiContainer.setScale(1 / zoom);
-        this.uiContainer.setPosition(centerX * (1 - 1 / zoom), centerY * (1 - 1 / zoom));
-
-        // Air bar
-        const airPct = Math.max(0, Math.min(100, air));
-        this.airBarFill.width = this.airBarWidth * (airPct / 100);
-        this.airBarFill.setFillStyle(airPct > 25 ? 0x22aadd : 0xcc3333);
-
-        // Stats
-        this.scoreText.setText(`${score}`);
-        this.moneyText.setText(`$${money}`);
-        this.crystalsText.setText(`${crystals}`);
-
-        const currentDepth = Math.max(0, Math.floor((playerY - 300) / 10));
-        this.depthText.setText(`${currentDepth}m`);
-
-        // Hearts
-        this.updateHearts(health);
-    }
-
-    updateHearts(health) {
-        for (let i = 0; i < this.hearts.length; i++) {
-            const threshold = (i + 1) * 2;
-            if (health >= threshold) {
-                this.hearts[i].setTexture('heart-full');
-            } else if (health >= threshold - 1) {
-                this.hearts[i].setTexture('heart-half');
-            } else {
-                this.hearts[i].setTexture('heart-empty');
-            }
-        }
     }
 
     setupMobileControls() {

@@ -13,6 +13,11 @@ export class Game extends Phaser.Scene {
     }
 
     create() {
+        // Stop any existing HUD scene from a previous run
+        if (this.scene.isActive('HUD')) {
+            this.scene.stop('HUD');
+        }
+
         // Reset all state (constructor only runs once, not on restart)
         this.air = PLAYER.MAX_AIR;
         this.score = 0;
@@ -87,6 +92,10 @@ export class Game extends Phaser.Scene {
         this.uiManager.create();
         this.worldManager.generateWorldItems();
         this.worldManager.setupPeriodicSpawning();
+
+        // Launch HUD as a parallel scene (its own camera = crisp text, no zoom scaling)
+        this.scene.launch('HUD');
+        this.hudScene = this.scene.get('HUD');
 
         this.setupCollisions();
 
@@ -205,7 +214,9 @@ export class Game extends Phaser.Scene {
         this.worldManager.update();
         this.updateLighting();
         this.updateParallax();
-        this.uiManager.update(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
+        if (this.hudScene && this.hudScene.scene.isActive()) {
+            this.hudScene.updateHUD(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
+        }
     }
 
     handleModeTransitions(isDiving, moveY) {
