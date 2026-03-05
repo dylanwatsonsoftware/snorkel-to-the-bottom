@@ -34,14 +34,31 @@ export class CollectionManager {
     }
 
     collectMermaid(p, m) {
-        if (m.getData('collected')) return;
-        m.setData('collected', true);
-        this.effects.playCollectAnimation(m);
+        if (m.onCooldown) return;
+
+        // Rewards
         this.scene.crystals += 1;
         this.scene.money += SCORING.MERMAID_MONEY;
         this.scene.score += SCORING.MERMAID_SCORE;
         p.health = Math.min(PLAYER.MAX_HEALTH, p.health + 1);
         this.scene.soundManager.play('mermaid');
+
+        // Floating heart animation
+        const heart = this.scene.add.image(m.x, m.y - 20, 'heart-full')
+            .setScale(0.8).setDepth(200);
+        this.scene.tweens.add({
+            targets: heart,
+            y: heart.y - 50,
+            alpha: 0,
+            scale: 1.4,
+            duration: 800,
+            ease: 'Cubic.easeOut',
+            onComplete: () => heart.destroy()
+        });
+
+        // Disable collision and swim away (cooldown re-enables after 5s)
+        if (m.body) m.body.enable = false;
+        m.swimAway();
     }
 
     collectCrystal(p, c) {

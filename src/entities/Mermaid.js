@@ -21,4 +21,24 @@ export class Mermaid extends Phaser.GameObjects.Sprite {
     swim() {
         this.body.setVelocityX(this.swimVelocity);
     }
+
+    swimAway() {
+        // Reverse direction and speed up
+        this.swimVelocity = -this.swimVelocity * 1.5;
+        this.setFlipX(this.swimVelocity < 0);
+        this.body.setVelocity(this.swimVelocity, 40);
+
+        // Cooldown — re-enable collision after a delay
+        this.onCooldown = true;
+        this.scene.time.delayedCall(5000, () => {
+            if (!this.active) return;
+            this.onCooldown = false;
+            // Resume normal swim speed
+            this.swimVelocity = this.swimVelocity > 0
+                ? Math.abs(this.swimVelocity / 1.5)
+                : -Math.abs(this.swimVelocity / 1.5);
+            this.body.setVelocity(this.swimVelocity, 0);
+            if (this.body) this.body.enable = true;
+        });
+    }
 }
