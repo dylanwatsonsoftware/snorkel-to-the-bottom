@@ -278,26 +278,52 @@ export class Game extends Phaser.Scene {
         return null;
     }
 
+    playCollectAnimation(item) {
+        if (item.body) item.body.enable = false;
+        this.tweens.add({
+            targets: item,
+            scaleX: { value: 0, duration: 150, yoyo: true, repeat: 2 },
+            scale: { value: 0, duration: 600 },
+            y: item.y - 30,
+            alpha: { value: 0, duration: 600, delay: 300 },
+            onComplete: () => item.destroy()
+        });
+    }
+
     collectTreasure(p, t) {
-        t.destroy(); this.money += 200; this.score += 500;
+        if (t.getData('collected')) return;
+        t.setData('collected', true);
+        this.playCollectAnimation(t);
+        this.money += 200; this.score += 500;
         this.soundManager.play('collect');
     }
     collectAir(p, b) {
+        if (b.getData('collected')) return;
+        b.setData('collected', true);
         const v = b.getData('visual'); if (v) v.destroy(); b.destroy();
         this.air = Math.min(100, this.air + 5);
         this.soundManager.play('bubble');
     }
     collectScuba(p, t) {
-        t.destroy(); this.air = 100; this.score += 100;
+        if (t.getData('collected')) return;
+        t.setData('collected', true);
+        this.playCollectAnimation(t);
+        this.air = 100; this.score += 100;
         this.soundManager.play('scuba');
     }
     collectMermaid(p, m) {
-        m.destroy(); this.crystals += 1; this.money += 100; this.score += 500;
+        if (m.getData('collected')) return;
+        m.setData('collected', true);
+        this.playCollectAnimation(m);
+        this.crystals += 1; this.money += 100; this.score += 500;
         p.health = Math.min(3, p.health + 1);
         this.soundManager.play('mermaid');
     }
     collectCrystal(p, c) {
-        c.destroy(); this.crystals += 1; this.score += 1000;
+        if (c.getData('collected')) return;
+        c.setData('collected', true);
+        this.playCollectAnimation(c);
+        this.crystals += 1; this.score += 1000;
         this.soundManager.play('crystal');
     }
 
