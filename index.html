@@ -8,14 +8,6 @@
 </head>
 <body>
     <div id="game-container"></div>
-    <script>
-        // Fix iOS/iPadOS Safari 100vh bug — use actual visible height
-        function fixHeight() {
-            document.body.style.height = window.innerHeight + 'px';
-        }
-        fixHeight();
-        window.addEventListener('resize', fixHeight);
-    </script>
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>
