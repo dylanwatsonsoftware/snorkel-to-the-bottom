@@ -7,9 +7,7 @@ export class HUD extends Phaser.Scene {
     }
 
     create() {
-        const { width, height } = this.scale;
-        const isTablet = Math.min(width, height) > 500;
-        const pad = isTablet ? 40 : 16;
+        const pad = 16;
         const dpr = Math.max(window.devicePixelRatio || 1, 2);
 
         // --- Mobile Controls ---
@@ -69,6 +67,7 @@ export class HUD extends Phaser.Scene {
             { ...valStyle, fill: '#66ddff' });
 
         // --- Hearts (top-right) ---
+        const { width } = this.scale;
         this.hearts = [];
         const maxHearts = Math.ceil(PLAYER.MAX_HEALTH / 2);
         const heartSpacing = 26;
