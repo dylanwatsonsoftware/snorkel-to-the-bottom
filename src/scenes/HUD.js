@@ -7,7 +7,19 @@ export class HUD extends Phaser.Scene {
     }
 
     create() {
-        const pad = 16;
+        // Read CSS safe-area-inset-top for notched / iPad displays
+        const safeTop = (() => {
+            const el = document.createElement('div');
+            el.style.paddingTop = 'env(safe-area-inset-top, 0px)';
+            document.body.appendChild(el);
+            const val = parseInt(getComputedStyle(el).paddingTop, 10) || 0;
+            el.remove();
+            return val;
+        })();
+        // On tablets / iPads the min viewport dimension is > 500; add more top padding
+        const { width, height } = this.scale;
+        const isTablet = Math.min(width, height) > 500;
+        const pad = isTablet ? Math.max(28, safeTop + 14) : Math.max(16, safeTop + 8);
         const dpr = Math.max(window.devicePixelRatio || 1, 2);
 
         // --- Mobile Controls ---
@@ -67,7 +79,6 @@ export class HUD extends Phaser.Scene {
             { ...valStyle, fill: '#66ddff' });
 
         // --- Hearts (top-right) ---
-        const { width } = this.scale;
         this.hearts = [];
         const maxHearts = Math.ceil(PLAYER.MAX_HEALTH / 2);
         const heartSpacing = 26;
