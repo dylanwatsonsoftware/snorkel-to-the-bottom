@@ -53,20 +53,27 @@ export class UIManager {
         const fireX = width - padding - btnSize / 2;
         const fireY = height - padding - btnSize / 2 - 80;
 
-        this.actionBtn = this.scene.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
+        this.actionIcon = this.scene.add.image(fireX, fireY, 'btn-fire')
             .setScrollFactor(0)
-            .setInteractive()
-            .on('pointerdown', () => this.mobileInputs.slash = true)
-            .on('pointerup', () => this.mobileInputs.slash = false)
-            .on('pointerout', () => this.mobileInputs.slash = false);
-
-        this.actionBtnText = this.scene.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
-            .setOrigin(0.5);
+            .setAlpha(0.7)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.mobileInputs.slash = true;
+                this.actionIcon.setAlpha(1);
+            })
+            .on('pointerup', () => {
+                this.mobileInputs.slash = false;
+                this.actionIcon.setAlpha(0.7);
+            })
+            .on('pointerout', () => {
+                this.mobileInputs.slash = false;
+                this.actionIcon.setAlpha(0.7);
+            });
 
         // Add mobile controls to separate container (no zoom compensation)
         this.mobileContainer.add([
             this.joystick.base, this.joystick.thumb,
-            this.actionBtn, this.actionBtnText
+            this.actionIcon
         ]);
     }
 
@@ -95,7 +102,9 @@ export class UIManager {
     }
 
     setActionLabel(label) {
-        if (this.actionBtnText) this.actionBtnText.setText(label);
+        if (!this.actionIcon) return;
+        const key = label === 'SLASH' ? 'btn-slash' : 'btn-fire';
+        this.actionIcon.setTexture(key);
     }
 
     consumeSlash() {

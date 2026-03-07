@@ -278,5 +278,64 @@ export class Boot extends Phaser.Scene {
         crIcon.fillTriangle(5, 4, 8, 2, 7, 7);
         crIcon.generateTexture('icon-crystal', iconSize, iconSize);
         crIcon.destroy();
+
+        // --- Action Button Icons (round, 80x80) ---
+        const btnS = 80;
+        const btnR = btnS / 2;
+
+        // FIRE button — crosshair / target
+        const fb = this.add.graphics();
+        // Outer ring
+        fb.lineStyle(3, 0xffffff, 0.9);
+        fb.strokeCircle(btnR, btnR, btnR - 4);
+        // Inner ring
+        fb.lineStyle(2, 0xffffff, 0.6);
+        fb.strokeCircle(btnR, btnR, 14);
+        // Crosshair lines
+        fb.lineStyle(2.5, 0xffffff, 0.85);
+        fb.lineBetween(btnR, 8, btnR, 22);     // top
+        fb.lineBetween(btnR, 58, btnR, 72);    // bottom
+        fb.lineBetween(8, btnR, 22, btnR);     // left
+        fb.lineBetween(58, btnR, 72, btnR);    // right
+        // Centre dot
+        fb.fillStyle(0xff4444, 1);
+        fb.fillCircle(btnR, btnR, 4);
+        fb.generateTexture('btn-fire', btnS, btnS);
+        fb.destroy();
+
+        // SLASH button — diagonal sword
+        const sb = this.add.graphics();
+        // Outer ring
+        sb.lineStyle(3, 0xffffff, 0.9);
+        sb.strokeCircle(btnR, btnR, btnR - 4);
+        // Blade (diagonal from bottom-left to top-right)
+        sb.lineStyle(5, 0xcccccc, 1);
+        sb.lineBetween(24, 56, 58, 22);
+        // Blade edge highlight
+        sb.lineStyle(2, 0xffffff, 0.9);
+        sb.lineBetween(25, 55, 57, 23);
+        // Blade tip
+        sb.fillStyle(0xeeeeee, 1);
+        sb.fillTriangle(56, 24, 62, 18, 54, 18);
+        // Guard (cross-piece)
+        sb.lineStyle(3, 0xdaa520, 1);
+        sb.lineBetween(18, 52, 34, 64);
+        // Handle
+        sb.lineStyle(4, 0x8b4513, 1);
+        sb.lineBetween(18, 58, 14, 66);
+        // Pommel
+        sb.fillStyle(0xdaa520, 1);
+        sb.fillCircle(13, 67, 3);
+        // Slash arc swoosh
+        sb.lineStyle(2, 0xffffff, 0.3);
+        sb.beginPath();
+        sb.arc(40, 40, 24, -2.4, -0.8, false);
+        sb.stroke();
+        sb.lineStyle(1.5, 0xffffff, 0.2);
+        sb.beginPath();
+        sb.arc(40, 40, 28, -2.2, -1.0, false);
+        sb.stroke();
+        sb.generateTexture('btn-slash', btnS, btnS);
+        sb.destroy();
     }
 }

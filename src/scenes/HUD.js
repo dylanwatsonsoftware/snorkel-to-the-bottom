@@ -124,14 +124,21 @@ export class HUD extends Phaser.Scene {
         const fireX = width - padding - btnSize / 2;
         const fireY = height - padding - btnSize / 2 - 80;
 
-        this.actionBtn = this.add.rectangle(fireX, fireY, btnSize, btnSize, 0xffffff, 0.2)
-            .setInteractive()
-            .on('pointerdown', () => this.mobileInputs.slash = true)
-            .on('pointerup', () => this.mobileInputs.slash = false)
-            .on('pointerout', () => this.mobileInputs.slash = false);
-
-        this.actionBtnText = this.add.text(fireX, fireY, 'FIRE', { fontSize: '24px', fill: '#fff' })
-            .setOrigin(0.5);
+        this.actionIcon = this.add.image(fireX, fireY, 'btn-fire')
+            .setAlpha(0.7)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.mobileInputs.slash = true;
+                this.actionIcon.setAlpha(1);
+            })
+            .on('pointerup', () => {
+                this.mobileInputs.slash = false;
+                this.actionIcon.setAlpha(0.7);
+            })
+            .on('pointerout', () => {
+                this.mobileInputs.slash = false;
+                this.actionIcon.setAlpha(0.7);
+            });
     }
 
     handleJoystickMove(pointer) {
@@ -159,7 +166,9 @@ export class HUD extends Phaser.Scene {
     }
 
     setActionLabel(label) {
-        if (this.actionBtnText) this.actionBtnText.setText(label);
+        if (!this.actionIcon) return;
+        const key = label === 'SLASH' ? 'btn-slash' : 'btn-fire';
+        this.actionIcon.setTexture(key);
     }
 
     consumeSlash() {
