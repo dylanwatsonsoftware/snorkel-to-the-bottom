@@ -30,8 +30,9 @@ export class WorldManager {
         for (let i = 0; i < counts.treasures; i++) this.spawnTreasure();
         for (let i = 0; i < counts.crystals; i++) this.spawnCrystal();
         for (let i = 0; i < counts.scuba; i++) this.spawnScubaTank();
-        for (let i = 0; i < counts.pirates; i++) this.spawnPirate();
-        for (let i = 0; i < counts.mermaids; i++) this.spawnMermaid();
+        // Spawn initial pirates at fixed world positions (camera isn't set up yet)
+        for (let i = 0; i < counts.pirates; i++) this.spawnInitialPirate();
+        for (let i = 0; i < counts.mermaids; i++) this.spawnInitialMermaid();
     }
 
     setupPeriodicSpawning() {
@@ -127,25 +128,47 @@ export class WorldManager {
 
     spawnPirate() {
         const cam = this.scene.cameras.main;
-        const deepMin = WORLD.WATERLINE_Y + 250;
+        const deepMin = WORLD.WATERLINE_Y + 400;
 
-        // Spawn from either side
+        // Spawn from either side, well off-screen
         const side = Phaser.Math.Between(0, 1);
-        const x = side === 0 ? cam.worldView.right + 200 : cam.worldView.left - 200;
+        const x = side === 0 ? cam.worldView.right + 400 : cam.worldView.left - 400;
         const direction = side === 0 ? -1 : 1; // swim toward camera
 
-        // Wide Y spread — use full underwater range, biased toward camera view
+        // Wide Y spread across the full underwater range
         const minY = deepMin;
-        const maxY = Math.max(deepMin + 100, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom + 300));
+        const maxY = Math.max(deepMin + 200, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom + 400));
         const y = Phaser.Math.Between(minY, maxY);
 
         // Push away from player if too close
-        const safeY = (Math.abs(y - this.scene.player.y) < 100) ? y + 200 : y;
+        const safeY = (Math.abs(y - this.scene.player.y) < 150) ? y + 300 : y;
         const finalY = Math.max(deepMin, Math.min(WORLD.SPAWN_MAX_Y, safeY));
 
         const pirate = new Pirate(this.scene, x, finalY);
         this.pirates.add(pirate);
         pirate.setSpeed(this.scene.difficulty, direction);
+    }
+
+    spawnInitialPirate() {
+        const worldWidth = Math.max(this.scene.scale.width, WORLD.MIN_WIDTH);
+        const deepMin = WORLD.WATERLINE_Y + 400;
+        const x = Phaser.Math.Between(worldWidth + 200, worldWidth + 600);
+        const y = Phaser.Math.Between(deepMin, WORLD.SPAWN_MAX_Y - 100);
+        const pirate = new Pirate(this.scene, x, y);
+        this.pirates.add(pirate);
+        pirate.setSpeed(this.scene.difficulty, -1);
+    }
+
+    spawnInitialMermaid() {
+        const worldWidth = Math.max(this.scene.scale.width, WORLD.MIN_WIDTH);
+        const deepMin = WORLD.WATERLINE_Y + 200;
+        const side = Phaser.Math.Between(0, 1);
+        const x = side === 0 ? worldWidth + 200 : -200;
+        const y = Phaser.Math.Between(deepMin, WORLD.SPAWN_MAX_Y - 100);
+        const velX = side === 0 ? -100 : 100;
+        const m = new Mermaid(this.scene, x, y, velX);
+        this.mermaids.add(m);
+        m.swim();
     }
 
     spawnSwordfish() {
