@@ -208,7 +208,6 @@ export class Game extends Phaser.Scene {
         if (!isDiving && !this.player.isDivingInitiated) {
             const maxAir = PLAYER.MAX_AIR + this.upgrades.airCapacity * UPGRADES.AIR_BONUS_PER_LEVEL;
             if (this.air < maxAir) this.air = maxAir;
-            if (this.player.health < PLAYER.MAX_HEALTH) this.player.health = PLAYER.MAX_HEALTH;
             if (Math.abs(this.player.x - this.boat.x) > 50) {
                 this.player.x = this.boat.x;
             }
@@ -237,6 +236,7 @@ export class Game extends Phaser.Scene {
             this.targetZoom = CAMERA.SURFACE_ZOOM;
             this.cameras.main.startFollow(this.boat, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
             this.player.setVisible(false);
+            this.player.health = PLAYER.MAX_HEALTH;
             this.hudScene.setActionLabel('FIRE');
             this.soundManager.play('splash');
             // Despawn underwater enemies when resurfacing
