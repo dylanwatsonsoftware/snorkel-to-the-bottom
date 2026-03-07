@@ -127,11 +127,16 @@ export class WorldManager {
 
     spawnPirate() {
         const cam = this.scene.cameras.main;
+        const deepMin = WORLD.WATERLINE_Y + 250;
         const x = cam.worldView.right + 200;
-        const minY = Math.max(WORLD.WATERLINE_Y + 200, cam.worldView.top);
-        const y = Phaser.Math.Between(minY, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
+        const minY = Math.max(deepMin, cam.worldView.top + 50);
+        const maxY = Math.max(minY + 50, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
+        // Don't spawn if camera is near the surface and can't place deep enough
+        if (maxY < deepMin) return;
+        const y = Phaser.Math.Between(minY, maxY);
         const safeY = (Math.abs(y - this.scene.player.y) < 100) ? y + 200 : y;
-        const pirate = new Pirate(this.scene, x, Math.min(WORLD.SPAWN_MAX_Y, safeY));
+        const finalY = Math.max(deepMin, Math.min(WORLD.SPAWN_MAX_Y, safeY));
+        const pirate = new Pirate(this.scene, x, finalY);
         this.pirates.add(pirate);
         pirate.setSpeed(this.scene.difficulty);
     }
@@ -151,7 +156,11 @@ export class WorldManager {
         const cam = this.scene.cameras.main;
         const side = Phaser.Math.Between(0, 1);
         const x = side === 0 ? cam.worldView.right + 200 : cam.worldView.left - 200;
-        const y = Phaser.Math.Between(Math.max(WORLD.SPAWN_MIN_Y, cam.worldView.top), Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
+        const deepMin = WORLD.WATERLINE_Y + 200;
+        const minY = Math.max(deepMin, cam.worldView.top + 50);
+        const maxY = Math.max(minY + 50, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
+        if (maxY < deepMin) return;
+        const y = Phaser.Math.Between(minY, maxY);
         const velX = side === 0 ? -100 : 100;
         const m = new Mermaid(this.scene, x, y, velX);
         this.mermaids.add(m);
