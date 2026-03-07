@@ -74,9 +74,9 @@ export class HUD extends Phaser.Scene {
         const heartsStartX = width - pad - maxHearts * heartSpacing + heartSpacing / 2;
 
         // Subtle panel behind hearts
-        const heartPanelBg = this.add.graphics();
-        heartPanelBg.fillStyle(0x110000, 0.35);
-        heartPanelBg.fillRoundedRect(
+        this.heartPanelBg = this.add.graphics();
+        this.heartPanelBg.fillStyle(0x110000, 0.35);
+        this.heartPanelBg.fillRoundedRect(
             heartsStartX - 16, pad - 6,
             maxHearts * heartSpacing + 18, 32, 8
         );
@@ -87,6 +87,8 @@ export class HUD extends Phaser.Scene {
             ).setScale(1.3);
             this.hearts.push(heart);
         }
+
+        this.heartsVisible = true;
     }
 
     setupMobileControls() {
@@ -187,7 +189,7 @@ export class HUD extends Phaser.Scene {
         };
     }
 
-    updateHUD(air, score, money, crystals, playerY, health) {
+    updateHUD(air, score, money, crystals, playerY, health, gameMode) {
         // Air bar
         const airPct = Math.max(0, Math.min(100, air));
         this.airBarFill.width = this.airBarWidth * (airPct / 100);
@@ -201,15 +203,25 @@ export class HUD extends Phaser.Scene {
         const currentDepth = Math.max(0, Math.floor((playerY - 300) / 10));
         this.depthText.setText(`${currentDepth}m`);
 
-        // Hearts
-        for (let i = 0; i < this.hearts.length; i++) {
-            const threshold = (i + 1) * 2;
-            if (health >= threshold) {
-                this.hearts[i].setTexture('heart-full');
-            } else if (health >= threshold - 1) {
-                this.hearts[i].setTexture('heart-half');
-            } else {
-                this.hearts[i].setTexture('heart-empty');
+        // Show hearts only on surface, hide when diving
+        const showHearts = gameMode === 'surface';
+        if (showHearts !== this.heartsVisible) {
+            this.heartsVisible = showHearts;
+            this.heartPanelBg.setVisible(showHearts);
+            this.hearts.forEach(h => h.setVisible(showHearts));
+        }
+
+        // Update heart textures (only when visible)
+        if (showHearts) {
+            for (let i = 0; i < this.hearts.length; i++) {
+                const threshold = (i + 1) * 2;
+                if (health >= threshold) {
+                    this.hearts[i].setTexture('heart-full');
+                } else if (health >= threshold - 1) {
+                    this.hearts[i].setTexture('heart-half');
+                } else {
+                    this.hearts[i].setTexture('heart-empty');
+                }
             }
         }
     }

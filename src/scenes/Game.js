@@ -118,12 +118,18 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, wm.mermaids, (p, m) => cm.collectMermaid(p, m), null, this);
         this.physics.add.overlap(this.player, wm.crystalsGroup, (p, c) => cm.collectCrystal(p, c), null, this);
 
-        // Enemy contact damage
+        // Enemy contact damage — underwater drains air, surface drains health
         this.physics.add.overlap(this.player, wm.pirates, (p, e) => {
-            if (!e.getData('dying')) this.player.takeDamage();
+            if (e.getData('dying')) return;
+            if (this.gameMode === 'diving') {
+                this.takeAirDamage(PLAYER.AIR_DAMAGE_PIRATE);
+            } else {
+                this.player.takeDamage();
+            }
         }, null, this);
         this.physics.add.overlap(this.player, wm.swordfishGroup, (p, e) => {
-            if (!e.getData('dying')) this.player.takeDamage(1);
+            if (e.getData('dying')) return;
+            this.takeAirDamage(PLAYER.AIR_DAMAGE_SWORDFISH);
         }, null, this);
 
         // Boat collider
@@ -214,7 +220,7 @@ export class Game extends Phaser.Scene {
         this.updateLighting();
         this.updateParallax();
         if (this.hudScene && this.hudScene.scene.isActive()) {
-            this.hudScene.updateHUD(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health);
+            this.hudScene.updateHUD(this.air, this.score, this.money, this.crystals, this.player.y, this.player.health, this.gameMode);
         }
     }
 
@@ -333,6 +339,30 @@ export class Game extends Phaser.Scene {
             this.flashlightMaskImage.x = this.player.x;
             this.flashlightMaskImage.y = this.player.y;
         }
+    }
+
+    takeAirDamage(amount) {
+        if (this.player.isInvincible || this.isGameOver) return;
+
+        this.air = Math.max(0, this.air - amount);
+        this.player.isInvincible = true;
+
+        if (this.soundManager) this.soundManager.play('hurt');
+
+        // Flicker effect (reuses same invincibility as health damage)
+        this.tweens.add({
+            targets: this.player,
+            alpha: 0.2,
+            duration: 100,
+            yoyo: true,
+            repeat: 6,
+            onComplete: () => {
+                this.player.alpha = 1;
+                this.player.isInvincible = false;
+            }
+        });
+
+        if (this.air <= 0) this.gameOver();
     }
 
     depleteAir() {
