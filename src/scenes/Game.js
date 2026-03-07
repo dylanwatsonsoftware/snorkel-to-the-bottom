@@ -142,11 +142,11 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(wm.cannonballs, wm.pirateShips, (ball, ship) => this.hitPirateShip(ball, ship), null, this);
         this.physics.add.overlap(this.boat, wm.pirateShips, (boat, ship) => {
             if (ship.getData('dying')) return;
-            // Only take damage when player is actually in the boat
-            if (this.gameMode !== 'surface') return;
+            // Ship is always destroyed on contact with the boat
             ship.setData('dying', true);
             this.effectsManager.playDeathAnimation(ship);
-            if (!this.player.isInvincible) {
+            // Only take damage when player is actually in the boat
+            if (this.gameMode === 'surface' && !this.player.isInvincible) {
                 this.player.takeDamage();
                 this.tweens.add({
                     targets: this.boat,
