@@ -41,6 +41,8 @@ export class CollectionManager {
         this.scene.money += SCORING.MERMAID_MONEY;
         this.scene.score += SCORING.MERMAID_SCORE;
         p.health = Math.min(PLAYER.MAX_HEALTH, p.health + 1);
+        const maxAir = PLAYER.MAX_AIR + (this.scene.upgrades.airCapacity || 0) * UPGRADES.AIR_BONUS_PER_LEVEL;
+        this.scene.air = Math.min(maxAir, this.scene.air + PLAYER.AIR_BUBBLE_RESTORE * 3);
         this.scene.soundManager.play('mermaid');
 
         // Floating heart animation
