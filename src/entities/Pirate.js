@@ -15,7 +15,10 @@ export class Pirate extends Phaser.GameObjects.Sprite {
         this.scene = scene;
     }
 
-    setSpeed(difficulty) {
-        this.body.setVelocityX(-COMBAT.PIRATE_SPEED * difficulty);
+    setSpeed(difficulty, direction) {
+        // direction: -1 = swim left, 1 = swim right
+        const dir = direction || -1;
+        this.body.setVelocityX(dir * COMBAT.PIRATE_SPEED * difficulty);
+        this.setFlipX(dir > 0);
     }
 }

@@ -128,17 +128,24 @@ export class WorldManager {
     spawnPirate() {
         const cam = this.scene.cameras.main;
         const deepMin = WORLD.WATERLINE_Y + 250;
-        const x = cam.worldView.right + 200;
-        const minY = Math.max(deepMin, cam.worldView.top + 50);
-        const maxY = Math.max(minY + 50, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom));
-        // Don't spawn if camera is near the surface and can't place deep enough
-        if (maxY < deepMin) return;
+
+        // Spawn from either side
+        const side = Phaser.Math.Between(0, 1);
+        const x = side === 0 ? cam.worldView.right + 200 : cam.worldView.left - 200;
+        const direction = side === 0 ? -1 : 1; // swim toward camera
+
+        // Wide Y spread — use full underwater range, biased toward camera view
+        const minY = deepMin;
+        const maxY = Math.max(deepMin + 100, Math.min(WORLD.SPAWN_MAX_Y - 100, cam.worldView.bottom + 300));
         const y = Phaser.Math.Between(minY, maxY);
+
+        // Push away from player if too close
         const safeY = (Math.abs(y - this.scene.player.y) < 100) ? y + 200 : y;
         const finalY = Math.max(deepMin, Math.min(WORLD.SPAWN_MAX_Y, safeY));
+
         const pirate = new Pirate(this.scene, x, finalY);
         this.pirates.add(pirate);
-        pirate.setSpeed(this.scene.difficulty);
+        pirate.setSpeed(this.scene.difficulty, direction);
     }
 
     spawnSwordfish() {
