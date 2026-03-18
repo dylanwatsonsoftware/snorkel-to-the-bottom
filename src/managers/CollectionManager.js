@@ -1,4 +1,4 @@
-import { PLAYER, SCORING, UPGRADE_TYPES, UPGRADES } from '../config/GameConfig';
+import { PLAYER, SCORING, UPGRADE_TYPES, UPGRADES, WORLD } from '../config/GameConfig';
 import Phaser from 'phaser';
 
 export class CollectionManager {
@@ -11,8 +11,21 @@ export class CollectionManager {
         if (t.getData('collected')) return;
         t.setData('collected', true);
         this.effects.playCollectAnimation(t);
-        this.scene.money += SCORING.TREASURE_MONEY;
-        this.scene.score += SCORING.TREASURE_SCORE;
+
+        // Scale value by depth: deeper = worth much more
+        const depthFraction = Math.max(0, Math.min(1,
+            (t.y - WORLD.SPAWN_MIN_Y) / (WORLD.SPAWN_MAX_Y - WORLD.SPAWN_MIN_Y)
+        ));
+        const multiplier = 1 + depthFraction * (SCORING.TREASURE_DEPTH_SCALE - 1);
+        const money = Math.round(SCORING.TREASURE_MONEY * multiplier);
+        const score = Math.round(SCORING.TREASURE_SCORE * multiplier);
+
+        this.scene.money += money;
+        this.scene.score += score;
+
+        // Show value so players know depth matters
+        const label = multiplier > 1.5 ? `+${money} 💰 x${multiplier.toFixed(1)}` : `+${money} 💰`;
+        this.effects.showFloatingText(t.x, t.y, label, multiplier >= 4 ? '#ffaa00' : '#ffff88');
         this.scene.soundManager.play('collect');
     }
 

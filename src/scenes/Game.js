@@ -319,7 +319,7 @@ export class Game extends Phaser.Scene {
             ship.setData('dying', true);
             ship.body.setVelocity(0, 0);
             this.effectsManager.playDeathAnimation(ship);
-            this.score += SCORING.PIRATE_SHIP_SCORE;
+            this.score += ship.getScore();
             this.collectionManager.dropUpgrade(ship.x, 290);
         }
     }

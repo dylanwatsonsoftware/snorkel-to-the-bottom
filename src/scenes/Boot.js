@@ -56,7 +56,7 @@ export class Boot extends Phaser.Scene {
         cb.generateTexture('cannonball', 16, 16);
         cb.destroy();
 
-        // Pirate ship
+        // Pirate ship (standard)
         const ps = this.add.graphics();
         // Hull
         ps.fillStyle(0x553311, 1);
@@ -80,6 +80,73 @@ export class Boot extends Phaser.Scene {
         ps.fillCircle(37, 4, 2);
         ps.generateTexture('pirateship', 70, 50);
         ps.destroy();
+
+        // Fast Sloop — small, sleek, red raider
+        const sl = this.add.graphics();
+        // Narrow hull
+        sl.fillStyle(0x881111, 1);
+        sl.fillRect(4, 22, 44, 12);
+        sl.fillTriangle(4, 22, 0, 34, 4, 34);
+        sl.fillTriangle(48, 22, 52, 34, 48, 34);
+        // Pointed bow
+        sl.fillTriangle(44, 24, 44, 32, 56, 28);
+        // Deck stripe
+        sl.fillStyle(0xaa3333, 1);
+        sl.fillRect(6, 20, 40, 4);
+        // Single mast
+        sl.fillStyle(0x331111, 1);
+        sl.fillRect(22, 2, 3, 20);
+        // Small triangular sail
+        sl.fillStyle(0xee2222, 0.9);
+        sl.fillTriangle(25, 3, 25, 18, 42, 10);
+        // Red flag
+        sl.fillStyle(0xff0000, 1);
+        sl.fillRect(21, 0, 8, 5);
+        sl.generateTexture('fastsloop', 60, 36);
+        sl.destroy();
+
+        // Galleon — large imposing warship, dark blue/grey
+        const gal = this.add.graphics();
+        // Wide hull
+        gal.fillStyle(0x1a2a4a, 1);
+        gal.fillRect(8, 44, 84, 22);
+        gal.fillTriangle(8, 44, 2, 66, 8, 66);
+        gal.fillTriangle(92, 44, 98, 66, 92, 66);
+        // Raised stern (back-left)
+        gal.fillStyle(0x243550, 1);
+        gal.fillRect(8, 34, 28, 14);
+        // Raised bow (right)
+        gal.fillStyle(0x243550, 1);
+        gal.fillRect(72, 38, 20, 8);
+        // Deck
+        gal.fillStyle(0x2a3d5a, 1);
+        gal.fillRect(10, 42, 80, 6);
+        // Cannon ports (three small dark squares on hull)
+        gal.fillStyle(0x0a1020, 1);
+        gal.fillRect(22, 50, 8, 6);
+        gal.fillRect(44, 50, 8, 6);
+        gal.fillRect(66, 50, 8, 6);
+        // Three masts
+        gal.fillStyle(0x2a1a0a, 1);
+        gal.fillRect(20, 2, 4, 44);
+        gal.fillRect(46, 6, 4, 38);
+        gal.fillRect(70, 10, 3, 32);
+        // Sails (cream coloured)
+        gal.fillStyle(0xd4cba8, 1);
+        gal.fillRect(24, 4, 20, 28);
+        gal.fillRect(50, 8, 18, 22);
+        gal.fillRect(73, 12, 14, 16);
+        // Sail shading
+        gal.fillStyle(0xb8b090, 0.5);
+        gal.fillRect(36, 4, 8, 28);
+        gal.fillRect(60, 8, 8, 22);
+        // Black flag on tallest mast
+        gal.fillStyle(0x111111, 1);
+        gal.fillRect(20, 0, 12, 6);
+        gal.fillStyle(0xffffff, 1);
+        gal.fillCircle(26, 3, 2);
+        gal.generateTexture('galleon', 100, 70);
+        gal.destroy();
 
         // Cutlass sword
         const sw = this.add.graphics();

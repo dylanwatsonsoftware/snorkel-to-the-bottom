@@ -87,7 +87,7 @@ export class WorldManager {
     // ── Spawn Methods ────────────────────────────────────────────────
 
     spawnTreasure() {
-        const pos = this.getSafeSpawnPos();
+        const pos = this.getDepthBiasedSpawnPos();
         if (pos) {
             const t = this.treasures.create(pos.x, pos.y, 'treasure').setScale(0.25);
             t.body.setSize(t.width * 0.4, t.height * 0.4);
@@ -203,7 +203,15 @@ export class WorldManager {
         const cam = this.scene.cameras.main;
         const side = Phaser.Math.Between(0, 1);
         const x = side === 0 ? cam.worldView.left - 100 : cam.worldView.right + 100;
-        const ship = new PirateShip(this.scene, x, WORLD.WATERLINE_Y);
+
+        // Weighted random ship type: 55% standard, 35% sloop, 10% galleon
+        const roll = Math.random();
+        let shipType;
+        if (roll < 0.35) shipType = 'sloop';
+        else if (roll < 0.45) shipType = 'galleon';
+        else shipType = 'standard';
+
+        const ship = new PirateShip(this.scene, x, WORLD.WATERLINE_Y, shipType);
         this.pirateShips.add(ship);
     }
 
@@ -213,6 +221,23 @@ export class WorldManager {
         while (attempts < 10) {
             const x = Phaser.Math.Between(50, worldWidth - 50);
             const y = Phaser.Math.Between(WORLD.SPAWN_MIN_Y, WORLD.SPAWN_MAX_Y);
+            if (Phaser.Math.Distance.Between(x, y, this.scene.player.x, this.scene.player.y) < 300) { attempts++; continue; }
+            if (this.scene.physics.overlapCirc(x, y, SPAWNING.MIN_SPACING).length === 0) return { x, y };
+            attempts++;
+        }
+        return null;
+    }
+
+    // Like getSafeSpawnPos but biases Y toward shallower depths (treasures spawn less at the bottom)
+    getDepthBiasedSpawnPos() {
+        let attempts = 0;
+        const worldWidth = Math.max(this.scene.scale.width, WORLD.MIN_WIDTH);
+        const range = WORLD.SPAWN_MAX_Y - WORLD.SPAWN_MIN_Y;
+        while (attempts < 10) {
+            const x = Phaser.Math.Between(50, worldWidth - 50);
+            // Power curve biases toward 0 (shallow) — power 2.5 means ~75% of spawns in the top half
+            const t = Math.pow(Math.random(), 2.5);
+            const y = Math.round(WORLD.SPAWN_MIN_Y + t * range);
             if (Phaser.Math.Distance.Between(x, y, this.scene.player.x, this.scene.player.y) < 300) { attempts++; continue; }
             if (this.scene.physics.overlapCirc(x, y, SPAWNING.MIN_SPACING).length === 0) return { x, y };
             attempts++;

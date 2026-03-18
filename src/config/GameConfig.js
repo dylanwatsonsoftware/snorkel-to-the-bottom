@@ -36,6 +36,7 @@ export const COMBAT = {
 export const SCORING = {
     TREASURE_MONEY: 200,
     TREASURE_SCORE: 500,
+    TREASURE_DEPTH_SCALE: 6, // max multiplier at deepest point (200→1200 money, 500→3000 score)
     SCUBA_SCORE: 100,
     MERMAID_MONEY: 100,
     MERMAID_SCORE: 500,
@@ -43,6 +44,13 @@ export const SCORING = {
     PIRATE_SCORE: 200,
     SWORDFISH_SCORE: 300,
     PIRATE_SHIP_SCORE: 500,
+};
+
+// Ship type definitions — each has its own texture, scale, HP, speed, and score
+export const SHIP_TYPES = {
+    standard: { key: 'pirateship',  scale: 0.8,  hp: 3, speed: 60,  score: 500  },
+    sloop:    { key: 'fastsloop',   scale: 0.55, hp: 1, speed: 130, score: 300  },
+    galleon:  { key: 'galleon',     scale: 1.3,  hp: 6, speed: 22,  score: 1200 },
 };
 
 export const SPAWNING = {
